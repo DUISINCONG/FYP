@@ -3,168 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Registration | Coffee Brew</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Customer Registration | JC Restaurant</title>
     <script defer src="script.js"></script>
+    <style>
+        /* Global Background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('images/backgroung.jpg') no-repeat center center/cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(20, 10, 0, 0.6);
+            z-index: 0;
+        }
+
+        /* Form Card */
+        .form-card {
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            width: 380px;
+            padding: 25px 45px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+        }
+
+        .form-card h2 {
+            color: #3e2723;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #6d4c41;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        /* Inputs */
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #4e342e;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #a1887f;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #6d4c41;
+            box-shadow: 0 0 6px rgba(109, 76, 65, 0.5);
+            outline: none;
+        }
+
+        /* Button */
+        .btn {
+            background: #6d4c41;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #3e2723;
+        }
+
+        /* Text Links */
+        .note {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .note a {
+            color: #5d4037;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .note a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error Message */
+        .error-message {
+            display: block;
+            height: 16px;
+            margin-top: 3px;
+            color: #d32f2f;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile view */
+        @media (max-width: 480px) {
+            .form-card {
+                width: 85%;
+                padding: 25px 18px;
+            }
+        }
+    </style>
 </head>
-<style>
-    /* Global & Backround */
-body.bg {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background: url('images/background.jpg') no-repeat center center/cover;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(20, 10, 0, 0.6);
-    z-index: 0;
-}
-
-/* Form Card */
-.form-card {
-    z-index: 1;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-    width: 400px;
-    padding: 40px 30px;
-    text-align: center;
-    backdrop-filter: blur(6px);
-}
-
-.form-card h2 {
-    color: #3e2723;
-    margin-bottom: 5px;
-}
-
-.subtitle {
-    color: #6d4c41;
-    margin-bottom: 25px;
-    font-size: 0.9rem;
-}
-
-/* Inputs */
-.input-group {
-    text-align: left;
-    margin-bottom: 15px;
-}
-
-label {
-    font-weight: 600;
-    color: #4e342e;
-    font-size: 0.9rem;
-}
-
-input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #a1887f;
-    border-radius: 8px;
-    margin-top: 5px;
-    font-size: 0.9rem;
-    transition: 0.3s;
-}
-
-input:focus {
-    border-color: #6d4c41;
-    box-shadow: 0 0 6px rgba(109, 76, 65, 0.5);
-    outline: none;
-}
-
-/* Button */
-.btn {
-    background: #6d4c41;
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: 600;
-}
-
-.btn:hover {
-    background: #3e2723;
-}
-
-/* Text Links */
-.note {
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
-
-.note a {
-    color: #5d4037;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.note a:hover {
-    text-decoration: underline;
-}
-
-/* Optional (for mobile) */
-@media (max-width: 480px) {
-    .form-card {
-        width: 85%;
-        padding: 25px 18px;
-    }
-}
-
-/* Error Message */
-.error-message {
-    display: block;
-    height: 16px;
-    margin-top: 3px;
-    color: #d32f2f;
-    font-size: 0.8rem;
-}
-
-</style>
-<body class="bg">
+<body>
     <div class="overlay"></div>
 
     <div class="form-card">
-        <h2>☕ Customer Registration</h2>
-        <p class="subtitle">Be Part of the JC Restaurant Family</p>
+        <h2>Customer Registration</h2>
+        <p class="subtitle">Be Part of the JC Restaurant Family!</p>
 
-        <form action="register.php" method="POST" id="registerForm">
+        <form id="registerForm">
             <div class="input-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter name">
+                <input type="text" id="name" placeholder="Enter name">
             </div>
 
             <div class="input-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="Enter email">
+                <input type="email" id="email" placeholder="Enter email">
             </div>
 
             <div class="input-group">
                 <label for="phone">Phone Number</label>
-                <input type="text" id="phone" name="phone" placeholder="Enter phone number">
+                <input type="text" id="phone" placeholder="Enter phone number">
             </div>
 
             <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter password">
+                <input type="password" id="password" placeholder="Enter password">
             </div>
 
             <div class="input-group">
                 <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Enter password">
+                <input type="password" id="confirmPassword" placeholder="Confirm password">
             </div>
 
             <button type="submit" class="btn">Register</button>
@@ -173,91 +172,86 @@ input:focus {
         <p class="note">Already have an account? <a href="login.html">Login here</a></p>
     </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const registerForm = document.getElementById("registerForm");
-    const inputs = registerForm.querySelectorAll("input");
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const registerForm = document.getElementById("registerForm");
+            const inputs = registerForm.querySelectorAll("input");
 
-    // Create error placeholders under each input
-    inputs.forEach(input => {
-        const errorMsg = document.createElement("small");
-        errorMsg.classList.add("error-message");
-        input.parentElement.appendChild(errorMsg);
-    });
+            // Create error placeholders under each input
+            inputs.forEach(input => {
+                const errorMsg = document.createElement("small");
+                errorMsg.classList.add("error-message");
+                input.parentElement.appendChild(errorMsg);
+            });
 
-    registerForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        let valid = true;
+            registerForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                let valid = true;
 
-        const name = document.getElementById("name");
-        const email = document.getElementById("email");
-        const phone = document.getElementById("phone");
-        const password = document.getElementById("password");
-        const confirmPassword = document.getElementById("confirmPassword");
+                const name = document.getElementById("name");
+                const email = document.getElementById("email");
+                const phone = document.getElementById("phone");
+                const password = document.getElementById("password");
+                const confirmPassword = document.getElementById("confirmPassword");
 
-        // Reset all error messages
-        registerForm.querySelectorAll(".error-message").forEach(msg => msg.textContent = "");
+                // Reset all error messages
+                registerForm.querySelectorAll(".error-message").forEach(msg => msg.textContent = "");
 
-        // Name validation
-        if (name.value.trim() === "") {
-            setError(name, "Please enter your full name.");
-            valid = false;
-        }
+                // Name validation
+                if (name.value.trim() === "") {
+                    setError(name, "Please enter your full name.");
+                    valid = false;
+                }
 
-        // Email validation
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (email.value.trim() === "") {
-            setError(email, "Please enter your email address.");
-            valid = false;
-        } else if (!emailPattern.test(email.value.trim())) {
-            setError(email, "Please enter a valid email address.");
-            valid = false;
-        }
+                // Email validation
+                const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                if (email.value.trim() === "") {
+                    setError(email, "Please enter your email address.");
+                    valid = false;
+                } else if (!emailPattern.test(email.value.trim())) {
+                    setError(email, "Please enter a valid email address.");
+                    valid = false;
+                }
 
-        // Phone validation (basic 8–15 digit check)
-        const phonePattern = /^[0-9]{8,15}$/;
-        if (phone.value.trim() === "") {
-            setError(phone, "Please enter your phone number.");
-            valid = false;
-        } else if (!phonePattern.test(phone.value.trim())) {
-            setError(phone, "Phone number must contain only digits (8–15).");
-            valid = false;
-        }
+                // Phone validation (basic 8–15 digit check)
+                const phonePattern = /^[0-9]{8,15}$/;
+                if (phone.value.trim() === "") {
+                    setError(phone, "Please enter your phone number.");
+                    valid = false;
+                } else if (!phonePattern.test(phone.value.trim())) {
+                    setError(phone, "Phone number must contain only digits (8–15).");
+                    valid = false;
+                }
 
-        // Password validation
-        if (password.value === "") {
-            setError(password, "Please enter your password.");
-            valid = false;
-        } else if (password.value.length < 6) {
-            setError(password, "Password must be at least 6 characters.");
-            valid = false;
-        }
+                // Password validation
+                if (password.value === "") {
+                    setError(password, "Please enter your password.");
+                    valid = false;
+                } else if (password.value.length < 6) {
+                    setError(password, "Password must be at least 6 characters.");
+                    valid = false;
+                }
 
-        // Confirm Password validation
-        if (confirmPassword.value === "") {
-            setError(confirmPassword, "Please confirm your password.");
-            valid = false;
-        } else if (confirmPassword.value !== password.value) {
-            setError(confirmPassword, "Passwords do not match.");
-            valid = false;
-        }
+                // Confirm Password validation
+                if (confirmPassword.value === "") {
+                    setError(confirmPassword, "Please confirm your password.");
+                    valid = false;
+                } else if (confirmPassword.value !== password.value) {
+                    setError(confirmPassword, "Passwords do not match.");
+                    valid = false;
+                }
 
-        if (valid) {
-            alert("Registration successful! Welcome to the JC Restaurant family ☕");
-            registerForm.reset();
-        }
-    });
+                if (valid) {
+                    alert("Registration successful! Welcome to the JC Restaurant family 🍽️");
+                    registerForm.reset();
+                }
+            });
 
-    function setError(input, message) {
-        const errorMsg = input.parentElement.querySelector(".error-message");
-        errorMsg.textContent = message;
-        errorMsg.style.color = "#d32f2f";
-        errorMsg.style.fontSize = "0.8rem";
-        errorMsg.style.marginTop = "4px";
-        errorMsg.style.display = "block";
-    }
-});
-</script>
-
+            function setError(input, message) {
+                const errorMsg = input.parentElement.querySelector(".error-message");
+                errorMsg.textContent = message;
+            }
+        });
+    </script>
 </body>
 </html>
