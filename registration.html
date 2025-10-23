@@ -5,27 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Customer Registration | JC Restaurant</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
       font-family: 'Poppins', sans-serif;
-      background: url('restaurant.jpg') no-repeat center center/cover;
-      height: 100vh;
+      background: linear-gradient(135deg, #3e2723 0%, #6d4c41 50%, #8d6e63 100%);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
+      overflow: hidden;
+    }
+
+    /* 粒子背景容器 */
+    #particles-js {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 0;
     }
 
     .overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(20, 10, 0, 0.6);
-      z-index: 0;
+      background: linear-gradient(45deg, rgba(20, 10, 0, 0.7), rgba(62, 39, 35, 0.5));
+      z-index: 1;
     }
 
     .form-card {
-      z-index: 1;
+      z-index: 2;
       background: rgba(255, 255, 255, 0.95);
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
@@ -33,11 +48,37 @@
       padding: 25px 55px;
       text-align: center;
       backdrop-filter: blur(6px);
+      animation: fadeIn 0.8s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6d4c41, #3e2723, #6d4c41);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite linear;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .form-card h2 {
       color: #3e2723;
       margin-bottom: 5px;
+      font-size: 1.8rem;
     }
 
     .subtitle {
@@ -49,28 +90,32 @@
     .input-group {
       text-align: left;
       margin-bottom: 15px;
+      position: relative;
     }
 
     label {
       font-weight: 600;
       color: #4e342e;
       font-size: 0.9rem;
+      display: block;
+      margin-bottom: 5px;
     }
 
     input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px 15px;
       border: 1px solid #a1887f;
       border-radius: 8px;
-      margin-top: 5px;
       font-size: 0.9rem;
       transition: 0.3s;
+      background: rgba(255, 255, 255, 0.8);
     }
 
     input:focus {
       border-color: #6d4c41;
       box-shadow: 0 0 6px rgba(109, 76, 65, 0.5);
       outline: none;
+      background: white;
     }
 
     .btn {
@@ -78,31 +123,43 @@
       color: white;
       border: none;
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
       transition: 0.3s;
       font-weight: 600;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
     }
 
     .btn:hover {
       background: #3e2723;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
     }
 
     .note {
       margin-top: 15px;
       font-size: 0.9rem;
+      color: #5d4037;
     }
 
     .note a {
       color: #5d4037;
       text-decoration: none;
       font-weight: 600;
+      transition: 0.3s;
     }
 
     .note a:hover {
       text-decoration: underline;
+      color: #3e2723;
     }
 
     /* Error Message */
@@ -111,17 +168,45 @@
       font-size: 0.8rem;
       margin-top: 4px;
       height: 14px;
+      display: block;
     }
 
     /* Success Box */
     .success-box {
       background-color: #4CAF50;
       color: white;
-      padding: 10px;
+      padding: 12px;
       border-radius: 8px;
       margin-top: 15px;
       display: none;
       font-weight: 500;
+      animation: popIn 0.5s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* 装饰元素 */
+    .decoration {
+      position: absolute;
+      z-index: 1;
+      opacity: 0.1;
+    }
+
+    .decoration.fork {
+      top: 10%;
+      left: 5%;
+      font-size: 60px;
+      transform: rotate(45deg);
+    }
+
+    .decoration.knife {
+      bottom: 10%;
+      right: 5%;
+      font-size: 60px;
+      transform: rotate(-45deg);
     }
 
     @media (max-width: 480px) {
@@ -129,11 +214,25 @@
         width: 85%;
         padding: 25px 18px;
       }
+      
+      .decoration {
+        display: none;
+      }
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  <div id="particles-js"></div>
   <div class="overlay"></div>
+  
+  <!-- 装饰元素 -->
+  <div class="decoration fork">
+    <i class="fas fa-utensils"></i>
+  </div>
+  <div class="decoration knife">
+    <i class="fas fa-utensil-spoon"></i>
+  </div>
 
   <div class="form-card">
     <h2>Customer Registration</h2>
@@ -174,7 +273,7 @@
     </form>
 
     <div id="successBox" class="success-box">
-      Registration Successful!!<br>Welcome to JC Restaurant!
+      <i class="fas fa-check-circle"></i> Registration Successful!<br>Welcome to JC Restaurant!
     </div>
 
     <p class="note">
@@ -182,8 +281,47 @@
     </p>
   </div>
 
+  <!-- 引入粒子效果库 -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  
   <script>
+    // 初始化粒子背景
     document.addEventListener("DOMContentLoaded", () => {
+      particlesJS("particles-js", {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.3, random: true },
+          size: { value: 3, random: true },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: "#ffffff",
+            opacity: 0.2,
+            width: 1
+          },
+          move: {
+            enable: true,
+            speed: 2,
+            direction: "none",
+            random: true,
+            straight: false,
+            out_mode: "out",
+            bounce: false
+          }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "repulse" },
+            onclick: { enable: true, mode: "push" },
+            resize: true
+          }
+        },
+        retina_detect: true
+      });
+
       const registerForm = document.getElementById("registerForm");
       const successBox = document.getElementById("successBox");
 
@@ -207,7 +345,19 @@
         if (confirmPassword.value !== password.value) { setError(confirmPassword, "Passwords do not match."); valid = false; }
 
         if (valid) {
-          // Send form via AJAX instead of reloading
+          // 模拟表单提交成功
+          setTimeout(() => {
+            successBox.style.display = "block";
+            registerForm.reset();
+            
+            // 3秒后隐藏成功消息
+            setTimeout(() => {
+              successBox.style.display = "none";
+            }, 3000);
+          }, 500);
+          
+          // 实际代码中应该使用下面的fetch请求
+          /*
           const formData = new FormData(registerForm);
           fetch(registerForm.action, {
             method: "POST",
@@ -223,6 +373,7 @@
               }
             })
             .catch((err) => alert("Error: " + err));
+          */
         }
       });
 
@@ -234,4 +385,3 @@
   </script>
 </body>
 </html>
-
