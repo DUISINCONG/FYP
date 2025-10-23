@@ -1,0 +1,135 @@
+body {
+  background-color: black;
+}
+
+p {
+
+  color:white;
+
+}
+
+h2 {
+
+  color:white;
+  font-size: 40px;
+
+}
+
+label {
+
+  color:white;
+  font-size: 30px;
+
+}
+
+img{
+
+  float: left;
+
+}
+
+.A{
+
+  margin: 10% 20% 0px 20%;
+
+}
+
+.B{
+
+  padding: 50px;
+
+}
+
+.B1{
+
+  padding: 0px 50px 50px 50px;
+
+}
+
+.B1 p{
+
+  text-align: center;
+  color: gray;
+
+}
+
+.B1 h2{
+
+  text-align: center;
+  font-family: "Inter";
+
+}
+
+.E{
+
+  text-align: center;
+
+}
+
+.D label{
+
+  margin-right: 100px;
+  size: 32px;
+  font-family: "Inter";
+}
+
+
+.F{
+
+  text-align: center;
+
+}
+
+.D{
+
+  text-align: center;
+
+}
+
+.D1{
+
+  margin-right: 200px;
+
+}
+
+.D2{
+
+  margin-right: 160px;
+
+}
+
+form input[type="text"]{
+
+  width: 400px;
+  height: 40px; 
+  background-color: #F7F7F7;
+
+}
+
+form input[type="password"]{
+
+  width: 400px;
+  height: 40px; 
+  background-color: #F7F7F7;
+
+}
+
+form input[type="submit"]{
+
+  width: 400px;
+  height: 40px; 
+  border-radius: 36px;
+  font-size: 24px;
+  font-family: "Inter";
+
+}
+
+button{
+
+  width: 400px;
+  height: 40px; 
+  border-radius: 36px;
+  font-size: 24px;
+  font-family: "Inter";
+
+}
