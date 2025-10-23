@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile | JC Restaurant</title>
+  <style>
+    /* Background & Layout */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Poppins", sans-serif;
+      background: url("restaurant.jpg") no-repeat center center/cover;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(20, 10, 0, 0.6);
+      z-index: 0;
+    }
+
+    /* Profile Card */
+    .profile-card {
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      width: 380px;
+      padding: 30px 40px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .profile-card h2 {
+      color: #3e2723;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #6d4c41;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+    }
+
+    /* Inputs */
+    .input-group {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #4e342e;
+      font-size: 0.9rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #a1887f;
+      border-radius: 8px;
+      margin-top: 5px;
+      font-size: 0.9rem;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #6d4c41;
+      box-shadow: 0 0 6px rgba(109, 76, 65, 0.5);
+      outline: none;
+    }
+
+    /* Buttons */
+    .btn {
+      background: #6d4c41;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: #3e2723;
+    }
+
+    .back-link {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .back-link a {
+      color: #5d4037;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Error Message */
+    .error-message {
+      display: block;
+      height: 16px;
+      margin-top: 3px;
+      color: #d32f2f;
+      font-size: 0.8rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .profile-card {
+        width: 85%;
+        padding: 25px 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay"></div>
+
+  <div class="profile-card">
+    <h2>Edit Profile</h2>
+    <p class="subtitle">Update your JC Restaurant account details</p>
+
+    <form id="editForm">
+      <div class="input-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter name" />
+      </div>
+
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Enter email address"
+        />
+      </div>
+
+      <div class="input-group">
+        <label for="phone">Phone Number</label>
+        <input
+          type="text"
+          id="phone"
+          name="phone"
+          placeholder="Enter phone number"
+        />
+      </div>
+
+      <button type="submit" class="btn">Save Changes</button>
+    </form>
+
+    <p class="back-link">Back to <a href="dashboard.html">Dashboard</a></p>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("editForm");
+      const inputs = form.querySelectorAll("input");
+
+      // Create error placeholders
+      inputs.forEach((input) => {
+        const error = document.createElement("small");
+        error.classList.add("error-message");
+        input.parentElement.appendChild(error);
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let valid = true;
+
+        const name = document.getElementById("name");
+        const email = document.getElementById("email");
+        const phone = document.getElementById("phone");
+
+        form
+          .querySelectorAll(".error-message")
+          .forEach((msg) => (msg.textContent = ""));
+
+        if (name.value.trim() === "") {
+          showError(name, "Name cannot be empty.");
+          valid = false;
+        }
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // ✅ fixed regex
+        if (email.value.trim() === "") {
+          showError(email, "Email cannot be empty.");
+          valid = false;
+        } else if (!emailPattern.test(email.value.trim())) {
+          showError(email, "Invalid email format.");
+          valid = false;
+        }
+
+        const phonePattern = /^[0-9]{8,15}$/;
+        if (phone.value.trim() === "") {
+          showError(phone, "Phone number cannot be empty.");
+          valid = false;
+        } else if (!phonePattern.test(phone.value.trim())) {
+          showError(phone, "Phone number must be 8–15 digits.");
+          valid = false;
+        }
+
+        if (valid) {
+          alert("Profile updated successfully!!");
+          form.reset();
+        }
+      });
+
+      function showError(input, message) {
+        const msg = input.parentElement.querySelector(".error-message");
+        msg.textContent = message;
+      }
+    });
+  </script>
+</body>
+</html>
