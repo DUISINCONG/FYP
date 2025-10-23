@@ -1,10 +1,10 @@
 <?php
-$host = "localhost";     // your server, usually localhost
-$user = "root";          // default XAMPP username
-$pass = "";              // default XAMPP password (empty if not changed)
-$dbname = "fyp"; // your database name
+$servername = "localhost";
+$username = "root";
+$password = "";
+$database = "fyp"; // ✅ your database name
 
-$conn = mysqli_connect($host, $user, $pass, $dbname);
+$conn = mysqli_connect($servername, $username, $password, $database);
 
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
