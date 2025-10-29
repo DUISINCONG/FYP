@@ -22,7 +22,7 @@
       overflow: hidden;
     }
 
-    /* 粒子背景容器 */
+    /* Particle background container */
     #particles-js {
       position: absolute;
       width: 100%;
@@ -188,7 +188,7 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* 装饰元素 */
+    /* Decorative elements */
     .decoration {
       position: absolute;
       z-index: 1;
@@ -226,7 +226,7 @@
   <div id="particles-js"></div>
   <div class="overlay"></div>
   
-  <!-- 装饰元素 -->
+  <!-- Decorative elements -->
   <div class="decoration fork">
     <i class="fas fa-utensils"></i>
   </div>
@@ -281,11 +281,11 @@
     </p>
   </div>
 
-  <!-- 引入粒子效果库 -->
+  <!-- Introducing particle effects library -->
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   
   <script>
-    // 初始化粒子背景
+    // Initialize particle background
     document.addEventListener("DOMContentLoaded", () => {
       particlesJS("particles-js", {
         particles: {
@@ -345,18 +345,18 @@
         if (confirmPassword.value !== password.value) { setError(confirmPassword, "Passwords do not match."); valid = false; }
 
         if (valid) {
-          // 模拟表单提交成功
+          // Simulated form submission successful
           setTimeout(() => {
             successBox.style.display = "block";
             registerForm.reset();
             
-            // 3秒后隐藏成功消息
+            // The message "Hidden Successfully" will be hidden in 3 seconds.
             setTimeout(() => {
               successBox.style.display = "none";
             }, 3000);
           }, 500);
           
-          // 实际代码中应该使用下面的fetch请求
+          // In actual code, the following fetch request should be used.
           /*
           const formData = new FormData(registerForm);
           fetch(registerForm.action, {
