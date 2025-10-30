@@ -17,21 +17,24 @@ session_start();
 
 if(isset($_POST['loginbutton'])) {
     $cemail = mysqli_real_escape_string($conn, $_POST['cemail']);
-    $password = $_POST['cpassword'];
+    $cpassword = $_POST['cpassword'];
 
     $query = "SELECT * FROM customers WHERE email = '$cemail'";
     $result = mysqli_query($conn, $query);
 
-    $query1 = "SELECT * FROM customers WHERE password = '$password'";   
+    $query1 = "SELECT * FROM customers WHERE password = '$cpassword'";   
     $result1 = mysqli_query($conn, $query1);
 
-    if(mysqli_num_rows($result) == 1) {
-        $admin = mysqli_fetch_assoc($result);
+    if(mysqli_num_rows($result) == true) {
         
-        if(mysqli_num_rows($result1) == 1) {
-            
-            header("Location: index.html");
+        if(mysqli_num_rows($result1) == true) {
+
+            $customer = mysqli_fetch_assoc($result1);
+            $_SESSION['id'] = $customer['customer_id'];
+
+            header("Location: test.php");
             exit();
+
         } else {
             echo "<script>error1();</script>";
         }
@@ -65,7 +68,9 @@ if(isset($_POST['loginbutton'])) {
 
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
 
-                <h2>Welcome JC Restaurant</h2>
+                <h2>Welcome to JC Restaurant</h2>
+
+                
 
                 <div class="C">
                     <div class="D">
@@ -77,7 +82,7 @@ if(isset($_POST['loginbutton'])) {
 
                     <div class="D">
                         <div class="D2">
-                        <label for="cpassword">Password:</label><br>
+                        <label for="cpassword">Password :</label><br>
                         </div>
                         <input type="password" id="cpassword" name="cpassword" required>
                     </div>
@@ -105,4 +110,3 @@ if(isset($_POST['loginbutton'])) {
 
 </body>
 </html> 
-
