@@ -13,7 +13,7 @@ if (isset($_POST['add_customer'])) {
     $check_sql = "SELECT * FROM customers WHERE customer_id='$customer_id'";
     $check_result = mysqli_query($conn, $check_sql);
     
-    if(mysqli_num_rows($check_result) > 0) {
+    if($check_result && mysqli_num_rows($check_result) > 0) {
         $error_message = "Error: Customer ID already exists!";
     } else {
         $sql = "INSERT INTO customers (customer_id, name, email, phone, password) VALUES ('$customer_id', '$name', '$email', '$phone', '$password')";
@@ -50,7 +50,7 @@ if (isset($_POST['update_customer'])) {
         $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
         $check_result = mysqli_query($conn, $check_sql);
         
-        if(mysqli_num_rows($check_result) > 0) {
+        if($check_result && mysqli_num_rows($check_result) > 0) {
             $error_message = "Error: Customer ID already exists!";
         } else {
             $sql = "UPDATE customers SET customer_id='$new_id', name='$name', email='$email', phone='$phone', password='$password' WHERE customer_id=$id";
@@ -74,6 +74,10 @@ if (isset($_POST['update_customer'])) {
 // Fetch customers
 $sql = "SELECT * FROM customers";
 $result = mysqli_query($conn, $sql);
+
+if (!$result) {
+    $error_message = "Database error: " . mysqli_error($conn);
+}
 ?>
 
 <!DOCTYPE html>
@@ -81,7 +85,7 @@ $result = mysqli_query($conn, $sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management</title>
+    <title>JC Restaurant - Customer Management</title>
     <style>
         :root {
             --primary: #3498db;
@@ -93,6 +97,8 @@ $result = mysqli_query($conn, $sql);
             --border: #bdc3c7;
             --text: #2c3e50;
             --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --active-color: #ff9800;
+            --active-color-dark: #f57c00;
         }
         
         * {
@@ -131,13 +137,27 @@ $result = mysqli_query($conn, $sql);
         .nav-menu a {
             color: white;
             text-decoration: none;
-            padding: 5px 10px;
+            padding: 8px 16px;
             border-radius: 4px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
         
         .nav-menu a:hover {
             background-color: rgba(255,255,255,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .nav-menu a.active {
+            background-color: var(--active-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
+        
+        .nav-menu a.active:hover {
+            background-color: var(--active-color-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
         }
         
         .admin-info {
@@ -405,13 +425,13 @@ $result = mysqli_query($conn, $sql);
         <div class="restaurant-name">JC Restaurant</div>
         <div class="nav-menu">
             <a href="#">HOME</a>
-            <a href="#">DASHBOARD</a>
-            <a href="#">CUSTOMERS</a>
-            <a href="#">RESERVATIONS</a>
+            <a href="manage_admins.php">ADMIN</a>
+            <a href="customer_management.php" class="active">CUSTOMERS</a>
             <a href="#">MENU</a>
+            <a href="#">ORDER HISTORY</a>
             <a href="#">REPORTS</a>
         </div>
-        <div class="admin-info">@ADMIN</div>
+        <div class="admin-info">Admin</div>
     </div>
     
     <div class="container">
@@ -473,6 +493,7 @@ $result = mysqli_query($conn, $sql);
         
         <div class="card">
             <h2>Customer List</h2>
+            <?php if ($result && mysqli_num_rows($result) > 0): ?>
             <table>
                 <thead>
                     <tr>
@@ -504,6 +525,11 @@ $result = mysqli_query($conn, $sql);
                     <?php } ?>
                 </tbody>
             </table>
+            <?php elseif (!$result): ?>
+                <div class="alert alert-error">Error loading customer list. Please check if the 'customers' table exists.</div>
+            <?php else: ?>
+                <p>No customer accounts found.</p>
+            <?php endif; ?>
         </div>
     </div>
     
