@@ -4,10 +4,12 @@ include 'db_connect.php';
 // Handle Add Customer
 if (isset($_POST['add_customer'])) {
     $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    $customer_name = mysqli_real_escape_string($conn, $_POST['customer_name']);
+    $customer_email = mysqli_real_escape_string($conn, $_POST['customer_email']);
+    $customer_phone = mysqli_real_escape_string($conn, $_POST['customer_phone']);
+    $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
+    // Set status to active by default for new customers
+    $customer_status = 'active';
 
     // Check if customer ID already exists
     $check_sql = "SELECT * FROM customers WHERE customer_id='$customer_id'";
@@ -16,23 +18,20 @@ if (isset($_POST['add_customer'])) {
     if($check_result && mysqli_num_rows($check_result) > 0) {
         $error_message = "Error: Customer ID already exists!";
     } else {
-        $sql = "INSERT INTO customers (customer_id, name, email, phone, password) VALUES ('$customer_id', '$name', '$email', '$phone', '$password')";
-        if(mysqli_query($conn, $sql)) {
-            $success_message = "Customer added successfully!";
+        // Check if email already exists
+        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email'";
+        $check_email_result = mysqli_query($conn, $check_email_sql);
+        
+        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+            $error_message = "Error: Email already exists!";
         } else {
-            $error_message = "Error adding customer: " . mysqli_error($conn);
+            $sql = "INSERT INTO customers (customer_id, customer_name, customer_email, customer_phone, customer_password, customer_status) VALUES ('$customer_id', '$customer_name', '$customer_email', '$customer_phone', '$customer_password', '$customer_status')";
+            if(mysqli_query($conn, $sql)) {
+                $success_message = "Customer added successfully!";
+            } else {
+                $error_message = "Error adding customer: " . mysqli_error($conn);
+            }
         }
-    }
-}
-
-// Handle Delete Customer
-if (isset($_GET['delete'])) {
-    $id = mysqli_real_escape_string($conn, $_GET['delete']);
-    $sql = "DELETE FROM customers WHERE customer_id=$id";
-    if(mysqli_query($conn, $sql)) {
-        $success_message = "Customer deleted successfully!";
-    } else {
-        $error_message = "Error deleting customer: " . mysqli_error($conn);
     }
 }
 
@@ -40,10 +39,11 @@ if (isset($_GET['delete'])) {
 if (isset($_POST['update_customer'])) {
     $id = mysqli_real_escape_string($conn, $_POST['customer_id']);
     $new_id = mysqli_real_escape_string($conn, $_POST['new_customer_id']);
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    $customer_name = mysqli_real_escape_string($conn, $_POST['customer_name']);
+    $customer_email = mysqli_real_escape_string($conn, $_POST['customer_email']);
+    $customer_phone = mysqli_real_escape_string($conn, $_POST['customer_phone']);
+    $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
+    $customer_status = mysqli_real_escape_string($conn, $_POST['customer_status']);
 
     // Check if new customer ID already exists (if changed)
     if ($id != $new_id) {
@@ -53,26 +53,53 @@ if (isset($_POST['update_customer'])) {
         if($check_result && mysqli_num_rows($check_result) > 0) {
             $error_message = "Error: Customer ID already exists!";
         } else {
-            $sql = "UPDATE customers SET customer_id='$new_id', name='$name', email='$email', phone='$phone', password='$password' WHERE customer_id=$id";
+            // Check if email already exists (excluding current customer)
+            $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
+            $check_email_result = mysqli_query($conn, $check_email_sql);
+            
+            if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                $error_message = "Error: Email already exists!";
+            } else {
+                $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
+                if(mysqli_query($conn, $sql)) {
+                    $success_message = "Customer updated successfully!";
+                } else {
+                    $error_message = "Error updating customer: " . mysqli_error($conn);
+                }
+            }
+        }
+    } else {
+        // ID didn't change, check email and update other fields
+        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
+        $check_email_result = mysqli_query($conn, $check_email_sql);
+        
+        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+            $error_message = "Error: Email already exists!";
+        } else {
+            $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
             if(mysqli_query($conn, $sql)) {
                 $success_message = "Customer updated successfully!";
             } else {
                 $error_message = "Error updating customer: " . mysqli_error($conn);
             }
         }
-    } else {
-        // ID didn't change, just update other fields
-        $sql = "UPDATE customers SET name='$name', email='$email', phone='$phone', password='$password' WHERE customer_id=$id";
-        if(mysqli_query($conn, $sql)) {
-            $success_message = "Customer updated successfully!";
-        } else {
-            $error_message = "Error updating customer: " . mysqli_error($conn);
-        }
     }
 }
 
-// Fetch customers
-$sql = "SELECT * FROM customers";
+// Handle Search
+$search = '';
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+    $search = mysqli_real_escape_string($conn, $_GET['search']);
+    $sql = "SELECT * FROM customers WHERE 
+            customer_id LIKE '%$search%' OR 
+            customer_name LIKE '%$search%' OR 
+            customer_email LIKE '%$search%' OR 
+            customer_phone LIKE '%$search%' 
+            ORDER BY customer_id";
+} else {
+    $sql = "SELECT * FROM customers ORDER BY customer_id";
+}
+
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
@@ -216,7 +243,8 @@ if (!$result) {
         input[type="email"],
         input[type="password"],
         input[type="tel"],
-        input[type="number"] {
+        input[type="number"],
+        input[type="search"] {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border);
@@ -279,6 +307,30 @@ if (!$result) {
             background-color: #dde4e6;
         }
         
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+        }
+        
+        .search-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .search-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -328,13 +380,22 @@ if (!$result) {
             background-color: var(--primary-dark);
         }
         
-        .delete-btn {
-            background-color: #e74c3c;
-            color: white;
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
-        .delete-btn:hover {
-            background-color: #c0392b;
+        .status-active {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .status-inactive {
+            background-color: rgba(149, 165, 166, 0.2);
+            color: #7f8c8d;
         }
         
         .modal {
@@ -417,6 +478,14 @@ if (!$result) {
                 flex-wrap: wrap;
                 justify-content: center;
             }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -453,30 +522,30 @@ if (!$result) {
             <form method="POST" action="">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="customerId">Customer ID</label>
-                        <input type="number" id="customerId" name="customer_id" placeholder="Enter customer ID" required>
+                        <label for="customer_id">Customer ID</label>
+                        <input type="number" id="customer_id" name="customer_id" placeholder="Enter customer ID" required>
                     </div>
                     <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="name" placeholder="Enter customer name" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="phoneNumber">Phone Number</label>
-                        <input type="tel" id="phoneNumber" name="phone" placeholder="Enter phone number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="emailAddress">Email Address</label>
-                        <input type="email" id="emailAddress" name="email" placeholder="Enter email address" required>
+                        <label for="customer_name">Full Name</label>
+                        <input type="text" id="customer_name" name="customer_name" placeholder="Enter customer name" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Enter password" required>
+                        <label for="customer_phone">Phone Number</label>
+                        <input type="tel" id="customer_phone" name="customer_phone" placeholder="Enter phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer_email">Email Address</label>
+                        <input type="email" id="customer_email" name="customer_email" placeholder="Enter email address" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customer_password">Password</label>
+                        <input type="password" id="customer_password" name="customer_password" placeholder="Enter password" required>
                     </div>
                     <div class="form-group">
                         <!-- Empty for alignment -->
@@ -493,6 +562,16 @@ if (!$result) {
         
         <div class="card">
             <h2>Customer List</h2>
+            
+            <!-- Search Form -->
+            <form method="GET" action="" class="search-container">
+                <input type="search" name="search" class="search-input" placeholder="Search by ID, name, email, or phone..." value="<?php echo htmlspecialchars($search); ?>">
+                <button type="submit" class="search-btn">Search</button>
+                <?php if (!empty($search)): ?>
+                    <a href="customer_management.php" class="btn btn-secondary">Clear</a>
+                <?php endif; ?>
+            </form>
+            
             <?php if ($result && mysqli_num_rows($result) > 0): ?>
             <table>
                 <thead>
@@ -501,25 +580,33 @@ if (!$result) {
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while($row = mysqli_fetch_assoc($result)) { ?>
+                    <?php while($row = mysqli_fetch_assoc($result)) { 
+                        $status = !empty($row['customer_status']) ? $row['customer_status'] : 'active';
+                    ?>
                     <tr>
                         <td><?php echo $row['customer_id']; ?></td>
-                        <td><?php echo $row['name']; ?></td>
-                        <td><?php echo $row['email']; ?></td>
-                        <td><?php echo $row['phone']; ?></td>
+                        <td><?php echo $row['customer_name']; ?></td>
+                        <td><?php echo $row['customer_email']; ?></td>
+                        <td><?php echo $row['customer_phone']; ?></td>
+                        <td>
+                            <span class="status-badge status-<?php echo $status; ?>">
+                                <?php echo ucfirst($status); ?>
+                            </span>
+                        </td>
                         <td class="actions">
                             <button class="action-btn edit-btn" onclick="openEditModal(
                                 '<?php echo $row['customer_id']; ?>',
-                                '<?php echo addslashes($row['name']); ?>',
-                                '<?php echo addslashes($row['email']); ?>',
-                                '<?php echo addslashes($row['phone']); ?>',
-                                '<?php echo addslashes($row['password']); ?>'
+                                '<?php echo addslashes($row['customer_name']); ?>',
+                                '<?php echo addslashes($row['customer_email']); ?>',
+                                '<?php echo addslashes($row['customer_phone']); ?>',
+                                '<?php echo addslashes($row['customer_password']); ?>',
+                                '<?php echo addslashes($status); ?>'
                             )">Edit</button>
-                            <a href="?delete=<?php echo $row['customer_id']; ?>" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this customer?');">Delete</a>
                         </td>
                     </tr>
                     <?php } ?>
@@ -547,20 +634,27 @@ if (!$result) {
                     <input type="number" id="editCustomerId" name="new_customer_id" placeholder="Enter customer ID" required>
                 </div>
                 <div class="form-group">
-                    <label for="editName">Full Name</label>
-                    <input type="text" id="editName" name="name" placeholder="Enter customer name" required>
+                    <label for="editCustomerName">Full Name</label>
+                    <input type="text" id="editCustomerName" name="customer_name" placeholder="Enter customer name" required>
                 </div>
                 <div class="form-group">
-                    <label for="editPhone">Phone Number</label>
-                    <input type="tel" id="editPhone" name="phone" placeholder="Enter phone number" required>
+                    <label for="editCustomerPhone">Phone Number</label>
+                    <input type="tel" id="editCustomerPhone" name="customer_phone" placeholder="Enter phone number" required>
                 </div>
                 <div class="form-group">
-                    <label for="editEmail">Email Address</label>
-                    <input type="email" id="editEmail" name="email" placeholder="Enter email address" required>
+                    <label for="editCustomerEmail">Email Address</label>
+                    <input type="email" id="editCustomerEmail" name="customer_email" placeholder="Enter email address" required>
                 </div>
                 <div class="form-group">
-                    <label for="editPassword">Password</label>
-                    <input type="password" id="editPassword" name="password" placeholder="Enter password" required>
+                    <label for="editCustomerPassword">Password</label>
+                    <input type="password" id="editCustomerPassword" name="customer_password" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerStatus">Status</label>
+                    <select id="editCustomerStatus" name="customer_status" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
                 </div>
                 <div class="btn-group">
                     <button type="submit" name="update_customer" class="btn btn-primary">Update Customer</button>
@@ -571,13 +665,14 @@ if (!$result) {
     </div>
 
     <script>
-        function openEditModal(id, name, email, phone, password) {
+        function openEditModal(id, customer_name, customer_email, customer_phone, customer_password, customer_status) {
             document.getElementById('editId').value = id;
             document.getElementById('editCustomerId').value = id;
-            document.getElementById('editName').value = name;
-            document.getElementById('editPhone').value = phone;
-            document.getElementById('editEmail').value = email;
-            document.getElementById('editPassword').value = password;
+            document.getElementById('editCustomerName').value = customer_name;
+            document.getElementById('editCustomerPhone').value = customer_phone;
+            document.getElementById('editCustomerEmail').value = customer_email;
+            document.getElementById('editCustomerPassword').value = customer_password;
+            document.getElementById('editCustomerStatus').value = customer_status;
             document.getElementById('editModal').style.display = 'flex';
         }
 
