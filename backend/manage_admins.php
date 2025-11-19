@@ -7,6 +7,8 @@ if (isset($_POST['add_admin'])) {
     $admin_name = mysqli_real_escape_string($conn, $_POST['admin_name']);
     $admin_password = mysqli_real_escape_string($conn, $_POST['admin_password']);
     $role = mysqli_real_escape_string($conn, $_POST['role']);
+    // Set status to active by default for new admins
+    $admin_status = 'active';
 
     // Check if admin ID already exists
     $check_sql = "SELECT * FROM admins WHERE admin_id='$admin_id'";
@@ -22,29 +24,12 @@ if (isset($_POST['add_admin'])) {
         if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
             $error_message = "Error: Admin name already exists!";
         } else {
-            $sql = "INSERT INTO admins (admin_id, admin_name, admin_password, role) VALUES ('$admin_id', '$admin_name', '$admin_password', '$role')";
+            $sql = "INSERT INTO admins (admin_id, admin_name, admin_password, role, admin_status) VALUES ('$admin_id', '$admin_name', '$admin_password', '$role', '$admin_status')";
             if(mysqli_query($conn, $sql)) {
                 $success_message = "Admin added successfully!";
             } else {
                 $error_message = "Error adding admin: " . mysqli_error($conn);
             }
-        }
-    }
-}
-
-// Handle Delete Admin
-if (isset($_GET['delete'])) {
-    $id = mysqli_real_escape_string($conn, $_GET['delete']);
-    
-    // Prevent deleting the superadmin
-    if ($id == 1) {
-        $error_message = "Error: Cannot delete superadmin account!";
-    } else {
-        $sql = "DELETE FROM admins WHERE admin_id=$id";
-        if(mysqli_query($conn, $sql)) {
-            $success_message = "Admin deleted successfully!";
-        } else {
-            $error_message = "Error deleting admin: " . mysqli_error($conn);
         }
     }
 }
@@ -56,6 +41,7 @@ if (isset($_POST['update_admin'])) {
     $admin_name = mysqli_real_escape_string($conn, $_POST['admin_name']);
     $admin_password = mysqli_real_escape_string($conn, $_POST['admin_password']);
     $role = mysqli_real_escape_string($conn, $_POST['role']);
+    $admin_status = mysqli_real_escape_string($conn, $_POST['admin_status']);
 
     // Check if new admin ID already exists (if changed)
     if ($id != $new_id) {
@@ -72,7 +58,7 @@ if (isset($_POST['update_admin'])) {
             if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
                 $error_message = "Error: Admin name already exists!";
             } else {
-                $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_password='$admin_password', role='$role' WHERE admin_id=$id";
+                $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
                 if(mysqli_query($conn, $sql)) {
                     $success_message = "Admin updated successfully!";
                 } else {
@@ -88,7 +74,7 @@ if (isset($_POST['update_admin'])) {
         if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
             $error_message = "Error: Admin name already exists!";
         } else {
-            $sql = "UPDATE admins SET admin_name='$admin_name', admin_password='$admin_password', role='$role' WHERE admin_id=$id";
+            $sql = "UPDATE admins SET admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
             if(mysqli_query($conn, $sql)) {
                 $success_message = "Admin updated successfully!";
             } else {
@@ -348,21 +334,12 @@ if (!$result) {
             background-color: var(--primary-dark);
         }
         
-        .delete-btn {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-        
-        .delete-btn:disabled {
+        .edit-btn:disabled {
             background-color: #95a5a6;
             cursor: not-allowed;
         }
         
-        .role-badge {
+        .role-badge, .status-badge {
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
@@ -378,6 +355,16 @@ if (!$result) {
         .role-admin {
             background-color: rgba(52, 152, 219, 0.2);
             color: var(--primary-dark);
+        }
+        
+        .status-active {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+        
+        .status-inactive {
+            background-color: rgba(149, 165, 166, 0.2);
+            color: #7f8c8d;
         }
         
         .modal {
@@ -548,12 +535,14 @@ if (!$result) {
                         <th>Admin Name</th>
                         <th>Password</th>
                         <th>Role</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while($row = mysqli_fetch_assoc($result)) { 
                         $isSuperadmin = $row['admin_id'] == 1;
+                        $status = !empty($row['admin_status']) ? $row['admin_status'] : 'active';
                     ?>
                     <tr class="<?php echo $isSuperadmin ? 'superadmin-row' : ''; ?>">
                         <td><?php echo $row['admin_id']; ?></td>
@@ -564,16 +553,19 @@ if (!$result) {
                                 <?php echo $row['role']; ?>
                             </span>
                         </td>
+                        <td>
+                            <span class="status-badge status-<?php echo $status; ?>">
+                                <?php echo ucfirst($status); ?>
+                            </span>
+                        </td>
                         <td class="actions">
                             <button class="action-btn edit-btn" onclick="openEditModal(
                                 '<?php echo $row['admin_id']; ?>',
                                 '<?php echo addslashes($row['admin_name']); ?>',
                                 '<?php echo addslashes($row['admin_password']); ?>',
-                                '<?php echo addslashes($row['role']); ?>'
+                                '<?php echo addslashes($row['role']); ?>',
+                                '<?php echo addslashes($status); ?>'
                             )" <?php echo $isSuperadmin ? 'disabled' : ''; ?>>Edit</button>
-                            <a href="?delete=<?php echo $row['admin_id']; ?>" class="action-btn delete-btn" 
-                               onclick="<?php echo $isSuperadmin ? 'alert(\'Cannot delete superadmin account!\'); return false;' : 'return confirm(\'Are you sure you want to delete this admin?\');'; ?>"
-                               <?php echo $isSuperadmin ? 'style="pointer-events: none; opacity: 0.5;"' : ''; ?>>Delete</a>
                         </td>
                     </tr>
                     <?php } ?>
@@ -608,12 +600,21 @@ if (!$result) {
                     <label for="editAdminPassword">Password</label>
                     <input type="password" id="editAdminPassword" name="admin_password" placeholder="Enter password" required>
                 </div>
-                <div class="form-group">
-                    <label for="editRole">Role</label>
-                    <select id="editRole" name="role" required>
-                        <option value="admin">Admin</option>
-                        <option value="superadmin">Super Admin</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editRole">Role</label>
+                        <select id="editRole" name="role" required>
+                            <option value="admin">Admin</option>
+                            <option value="superadmin">Super Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus" name="admin_status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="btn-group">
                     <button type="submit" name="update_admin" class="btn btn-primary">Update Admin</button>
@@ -624,12 +625,13 @@ if (!$result) {
     </div>
 
     <script>
-        function openEditModal(id, admin_name, admin_password, role) {
+        function openEditModal(id, admin_name, admin_password, role, status) {
             document.getElementById('editId').value = id;
             document.getElementById('editAdminId').value = id;
             document.getElementById('editAdminName').value = admin_name;
             document.getElementById('editAdminPassword').value = admin_password;
             document.getElementById('editRole').value = role;
+            document.getElementById('editStatus').value = status;
             document.getElementById('editModal').style.display = 'flex';
         }
 
