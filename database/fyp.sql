@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 18, 2025 at 03:13 PM
+-- Generation Time: Nov 26, 2025 at 10:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -31,16 +31,18 @@ CREATE TABLE `admins` (
   `admin_id` int(11) NOT NULL,
   `admin_name` varchar(255) NOT NULL,
   `admin_password` varchar(255) NOT NULL,
-  `role` enum('superadmin','admin') NOT NULL
+  `role` enum('superadmin','admin') NOT NULL,
+  `admin_status` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`admin_id`, `admin_name`, `admin_password`, `role`) VALUES
-(1, 'superadmin', '12345', 'superadmin'),
-(3, 'admin1', '12345', 'admin');
+INSERT INTO `admins` (`admin_id`, `admin_name`, `admin_password`, `role`, `admin_status`) VALUES
+(1, 'DuiSinCong', 'Abc12345?', 'superadmin', 'active'),
+(2, 'Jerry', 'Jerry4141&', 'admin', 'active'),
+(3, 'Keishav', 'Keishav5856!', 'admin', 'active');
 
 -- --------------------------------------------------------
 
@@ -65,10 +67,10 @@ INSERT INTO `beverages` (`product_id`, `product_name`, `product_price`, `product
 ('D02', 'Watermelon Juice', 6.90, 'Available', NULL),
 ('D03', 'Orange Yogurt', 7.90, 'Available', NULL),
 ('D04', 'Watermelon Yogurt', 7.90, 'Available', NULL),
-('D05', 'Peach Tea (H/C)', 5.90, 'Available', NULL),
-('D06', 'Lemonade (H/C)', 5.90, 'Available', NULL),
-('D07', 'Honey Lemon (H/C)', 6.90, 'Available', NULL),
-('D08', 'Skyjuice (H/C)', 0.50, 'Available', NULL);
+('D05', 'Peach Tea', 5.90, 'Available', ''),
+('D06', 'Lemonade', 5.90, 'Available', ''),
+('D07', 'Honey Lemon', 6.90, 'Available', ''),
+('D08', 'Skyjuice', 0.50, 'Available', '');
 
 -- --------------------------------------------------------
 
@@ -103,19 +105,20 @@ INSERT INTO `coffee` (`product_id`, `product_name`, `product_price`, `product_st
 
 CREATE TABLE `customers` (
   `customer_id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `password` varchar(255) NOT NULL
+  `customer_name` varchar(255) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `customer_phone` varchar(20) NOT NULL,
+  `customer_password` varchar(255) NOT NULL,
+  `customer_status` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `customers`
 --
 
-INSERT INTO `customers` (`customer_id`, `name`, `email`, `phone`, `password`) VALUES
-(2, 'kelvin', 'kelvinchua@gmail.com', '0126657394', '21345678'),
-(3, 'ivan', 'ivan@gmail.com', '0147562233', '32145678');
+INSERT INTO `customers` (`customer_id`, `customer_name`, `customer_email`, `customer_phone`, `customer_password`, `customer_status`) VALUES
+(1, 'Ali', 'ali@gmail.com', '0128839921', 'Ali112233?', 'active'),
+(2, 'Siti', 'siti@gmail.com', '0123456789', 'Siti2468@', 'active');
 
 -- --------------------------------------------------------
 
@@ -136,7 +139,7 @@ CREATE TABLE `main_food` (
 --
 
 INSERT INTO `main_food` (`product_id`, `product_name`, `product_price`, `product_status`, `product_description`) VALUES
-('A01', 'Chicken Chop & Aglio Olio', 15.90, 'Available', NULL),
+('A01', 'Chicken Chop & Aglio Olio', 15.90, 'Available', ''),
 ('A02', 'Chicken Chop & Bolognese Spaghetti', 15.90, 'Available', NULL),
 ('A03', 'Chicken Chop & Creamy Carbonara', 15.90, 'Available', NULL),
 ('A04', 'Salmon Steak & Aglio Olio', 25.90, 'Available', NULL),
@@ -166,8 +169,9 @@ INSERT INTO `main_food` (`product_id`, `product_name`, `product_price`, `product
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `customer_id` int(11) NOT NULL,
-  `status` enum('pending','delivery','complete') DEFAULT 'pending',
-  `order_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `order_status` varchar(20) DEFAULT NULL,
+  `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -254,7 +258,7 @@ ALTER TABLE `coffee`
 --
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`customer_id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`customer_email`);
 
 --
 -- Indexes for table `main_food`
