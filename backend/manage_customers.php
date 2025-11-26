@@ -1,6 +1,77 @@
 <?php
 include 'db_connect.php';
 
+// Password validation function
+function validatePassword($password) {
+    // Check password length
+    if (strlen($password) < 8) {
+        return "Password must be at least 8 characters long";
+    }
+    
+    // Check if contains letters
+    if (!preg_match('/[a-zA-Z]/', $password)) {
+        return "Password must contain at least one letter";
+    }
+    
+    // Check if contains numbers
+    if (!preg_match('/[0-9]/', $password)) {
+        return "Password must contain at least one number";
+    }
+    
+    // Check if contains special characters
+    if (!preg_match('/[?!@#$%^&*()\-_=+{};:,<.>]/', $password)) {
+        return "Password must contain at least one special character (?!@#$%^&*()-_=+{};:,<.>)";
+    }
+    
+    return true; // Password is valid
+}
+
+// Email validation function
+function validateEmail($email) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return "Please enter a valid email address format (e.g., example@gmail.com)";
+    }
+    
+    // Additional check for common email providers
+    $email_parts = explode('@', $email);
+    if (count($email_parts) !== 2) {
+        return "Invalid email format";
+    }
+    
+    $domain = strtolower($email_parts[1]);
+    $allowed_domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'];
+    
+    // You can add more domains or remove this check if you want to allow all valid emails
+    if (!in_array($domain, $allowed_domains)) {
+        return "Please use a valid email provider (Gmail, Yahoo, Hotmail, Outlook, iCloud)";
+    }
+    
+    return true;
+}
+
+// Phone number validation function
+function validatePhone($phone) {
+    // Remove any non-digit characters
+    $cleaned_phone = preg_replace('/[^0-9]/', '', $phone);
+    
+    // Check if it's a valid length (10 digits for most countries, 11 if including country code)
+    if (strlen($cleaned_phone) < 10 || strlen($cleaned_phone) > 15) {
+        return "Phone number should be between 10-15 digits";
+    }
+    
+    // Check if it contains only numbers after cleaning
+    if (!preg_match('/^[0-9]+$/', $cleaned_phone)) {
+        return "Phone number should contain only numbers";
+    }
+    
+    // Common phone number patterns
+    if (!preg_match('/^[0-9]{10,15}$/', $cleaned_phone)) {
+        return "Invalid phone number format";
+    }
+    
+    return true;
+}
+
 // Handle Add Customer
 if (isset($_POST['add_customer'])) {
     $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
@@ -11,25 +82,40 @@ if (isset($_POST['add_customer'])) {
     // Set status to active by default for new customers
     $customer_status = 'active';
 
-    // Check if customer ID already exists
-    $check_sql = "SELECT * FROM customers WHERE customer_id='$customer_id'";
-    $check_result = mysqli_query($conn, $check_sql);
-    
-    if($check_result && mysqli_num_rows($check_result) > 0) {
-        $error_message = "Error: Customer ID already exists!";
-    } else {
-        // Check if email already exists
-        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email'";
-        $check_email_result = mysqli_query($conn, $check_email_sql);
+    // Validate email
+    $emailValidation = validateEmail($customer_email);
+    if ($emailValidation !== true) {
+        $error_message = "Error: " . $emailValidation;
+    }
+    // Validate phone
+    elseif (($phoneValidation = validatePhone($customer_phone)) !== true) {
+        $error_message = "Error: " . $phoneValidation;
+    }
+    // Validate password
+    elseif (($passwordValidation = validatePassword($customer_password)) !== true) {
+        $error_message = "Error: " . $passwordValidation;
+    }
+    else {
+        // Check if customer ID already exists
+        $check_sql = "SELECT * FROM customers WHERE customer_id='$customer_id'";
+        $check_result = mysqli_query($conn, $check_sql);
         
-        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-            $error_message = "Error: Email already exists!";
+        if($check_result && mysqli_num_rows($check_result) > 0) {
+            $error_message = "Error: Customer ID already exists!";
         } else {
-            $sql = "INSERT INTO customers (customer_id, customer_name, customer_email, customer_phone, customer_password, customer_status) VALUES ('$customer_id', '$customer_name', '$customer_email', '$customer_phone', '$customer_password', '$customer_status')";
-            if(mysqli_query($conn, $sql)) {
-                $success_message = "Customer added successfully!";
+            // Check if email already exists
+            $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email'";
+            $check_email_result = mysqli_query($conn, $check_email_sql);
+            
+            if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                $error_message = "Error: Email already exists!";
             } else {
-                $error_message = "Error adding customer: " . mysqli_error($conn);
+                $sql = "INSERT INTO customers (customer_id, customer_name, customer_email, customer_phone, customer_password, customer_status) VALUES ('$customer_id', '$customer_name', '$customer_email', '$customer_phone', '$customer_password', '$customer_status')";
+                if(mysqli_query($conn, $sql)) {
+                    $success_message = "Customer added successfully!";
+                } else {
+                    $error_message = "Error adding customer: " . mysqli_error($conn);
+                }
             }
         }
     }
@@ -45,42 +131,57 @@ if (isset($_POST['update_customer'])) {
     $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
     $customer_status = mysqli_real_escape_string($conn, $_POST['customer_status']);
 
-    // Check if new customer ID already exists (if changed)
-    if ($id != $new_id) {
-        $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if($check_result && mysqli_num_rows($check_result) > 0) {
-            $error_message = "Error: Customer ID already exists!";
+    // Validate email
+    $emailValidation = validateEmail($customer_email);
+    if ($emailValidation !== true) {
+        $error_message = "Error: " . $emailValidation;
+    }
+    // Validate phone
+    elseif (($phoneValidation = validatePhone($customer_phone)) !== true) {
+        $error_message = "Error: " . $phoneValidation;
+    }
+    // Validate password
+    elseif (($passwordValidation = validatePassword($customer_password)) !== true) {
+        $error_message = "Error: " . $passwordValidation;
+    }
+    else {
+        // Check if new customer ID already exists (if changed)
+        if ($id != $new_id) {
+            $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
+            $check_result = mysqli_query($conn, $check_sql);
+            
+            if($check_result && mysqli_num_rows($check_result) > 0) {
+                $error_message = "Error: Customer ID already exists!";
+            } else {
+                // Check if email already exists (excluding current customer)
+                $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
+                $check_email_result = mysqli_query($conn, $check_email_sql);
+                
+                if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                    $error_message = "Error: Email already exists!";
+                } else {
+                    $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
+                    if(mysqli_query($conn, $sql)) {
+                        $success_message = "Customer updated successfully!";
+                    } else {
+                        $error_message = "Error updating customer: " . mysqli_error($conn);
+                    }
+                }
+            }
         } else {
-            // Check if email already exists (excluding current customer)
+            // ID didn't change, check email and update other fields
             $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
             $check_email_result = mysqli_query($conn, $check_email_sql);
             
             if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
                 $error_message = "Error: Email already exists!";
             } else {
-                $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
+                $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
                 if(mysqli_query($conn, $sql)) {
                     $success_message = "Customer updated successfully!";
                 } else {
                     $error_message = "Error updating customer: " . mysqli_error($conn);
                 }
-            }
-        }
-    } else {
-        // ID didn't change, check email and update other fields
-        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
-        $check_email_result = mysqli_query($conn, $check_email_sql);
-        
-        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-            $error_message = "Error: Email already exists!";
-        } else {
-            $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
-            if(mysqli_query($conn, $sql)) {
-                $success_message = "Customer updated successfully!";
-            } else {
-                $error_message = "Error updating customer: " . mysqli_error($conn);
             }
         }
     }
@@ -415,8 +516,8 @@ if (!$result) {
             background: white;
             padding: 30px;
             border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
+            width: 100%;
+            max-width: 600px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
@@ -451,6 +552,35 @@ if (!$result) {
             background-color: rgba(231, 76, 60, 0.1);
             color: var(--danger);
             border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        .requirements {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .requirements h4 {
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .requirements ul {
+            margin-left: 20px;
+        }
+        
+        .requirements li {
+            margin-bottom: 5px;
+        }
+        
+        .input-hint {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+            font-style: italic;
         }
         
         @media (max-width: 768px) {
@@ -519,6 +649,23 @@ if (!$result) {
         
         <div class="card">
             <h2>Add New Customer</h2>
+            
+            <div class="requirements">
+                <h4>Requirements:</h4>
+                <ul>
+                    <li><strong>Email:</strong> Must be a valid email format (e.g., example@gmail.com)</li>
+                    <li><strong>Phone:</strong> 10-15 digits only (e.g., 0123456789)</li>
+                    <li><strong>Password:</strong> 
+                        <ul>
+                            <li>At least 8 characters long</li>
+                            <li>Contains at least one letter (a-z, A-Z)</li>
+                            <li>Contains at least one number (0-9)</li>
+                            <li>Contains at least one special character (?!@#$%^&*()-_=+{};:,<.>)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
             <form method="POST" action="">
                 <div class="form-row">
                     <div class="form-group">
@@ -534,11 +681,13 @@ if (!$result) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="customer_phone">Phone Number</label>
-                        <input type="tel" id="customer_phone" name="customer_phone" placeholder="Enter phone number" required>
+                        <input type="tel" id="customer_phone" name="customer_phone" placeholder="e.g., 0123456789" required>
+                        <div class="input-hint">10-15 digits only (numbers only)</div>
                     </div>
                     <div class="form-group">
                         <label for="customer_email">Email Address</label>
-                        <input type="email" id="customer_email" name="customer_email" placeholder="Enter email address" required>
+                        <input type="email" id="customer_email" name="customer_email" placeholder="e.g., example@gmail.com" required>
+                        <div class="input-hint">Must be a valid email address</div>
                     </div>
                 </div>
                 
@@ -546,6 +695,7 @@ if (!$result) {
                     <div class="form-group">
                         <label for="customer_password">Password</label>
                         <input type="password" id="customer_password" name="customer_password" placeholder="Enter password" required>
+                        <div class="input-hint">Must meet all password requirements above</div>
                     </div>
                     <div class="form-group">
                         <!-- Empty for alignment -->
@@ -627,6 +777,8 @@ if (!$result) {
                 <h2>Edit Customer</h2>
                 <button class="close-btn" onclick="closeEditModal()">&times;</button>
             </div>
+            
+            
             <form method="POST" action="">
                 <input type="hidden" id="editId" name="customer_id">
                 <div class="form-group">
@@ -639,15 +791,18 @@ if (!$result) {
                 </div>
                 <div class="form-group">
                     <label for="editCustomerPhone">Phone Number</label>
-                    <input type="tel" id="editCustomerPhone" name="customer_phone" placeholder="Enter phone number" required>
+                    <input type="tel" id="editCustomerPhone" name="customer_phone" placeholder="e.g., 0123456789" required>
+                    <div class="input-hint">10-15 digits only (numbers only)</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerEmail">Email Address</label>
-                    <input type="email" id="editCustomerEmail" name="customer_email" placeholder="Enter email address" required>
+                    <input type="email" id="editCustomerEmail" name="customer_email" placeholder="e.g., example@gmail.com" required>
+                    <div class="input-hint">Must be a valid email address</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerPassword">Password</label>
                     <input type="password" id="editCustomerPassword" name="customer_password" placeholder="Enter password" required>
+                    <div class="input-hint">Must meet all password requirements above</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerStatus">Status</label>
@@ -687,6 +842,25 @@ if (!$result) {
                 closeEditModal();
             }
         }
+
+        // Real-time phone number formatting
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // Remove any non-digit characters
+                    let value = e.target.value.replace(/\D/g, '');
+                    
+                    // Limit to 15 digits
+                    if (value.length > 15) {
+                        value = value.substring(0, 15);
+                    }
+                    
+                    e.target.value = value;
+                });
+            });
+        });
     </script>
 </body>
 </html>
