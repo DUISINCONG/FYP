@@ -1,6 +1,31 @@
 <?php
 include 'db_connect.php';
 
+// Password validation function
+function validatePassword($password) {
+    // Check password length
+    if (strlen($password) < 8) {
+        return "Password must be at least 8 characters long";
+    }
+    
+    // Check if contains letters
+    if (!preg_match('/[a-zA-Z]/', $password)) {
+        return "Password must contain at least one letter";
+    }
+    
+    // Check if contains numbers
+    if (!preg_match('/[0-9]/', $password)) {
+        return "Password must contain at least one number";
+    }
+    
+    // Check if contains special characters
+    if (!preg_match('/[?!@#$%^&*()\-_=+{};:,<.>]/', $password)) {
+        return "Password must contain at least one special character (?!@#$%^&*()-_=+{};:,<.>)";
+    }
+    
+    return true; // Password is valid
+}
+
 // Handle Add Admin
 if (isset($_POST['add_admin'])) {
     $admin_id = mysqli_real_escape_string($conn, $_POST['admin_id']);
@@ -10,25 +35,31 @@ if (isset($_POST['add_admin'])) {
     // Set status to active by default for new admins
     $admin_status = 'active';
 
-    // Check if admin ID already exists
-    $check_sql = "SELECT * FROM admins WHERE admin_id='$admin_id'";
-    $check_result = mysqli_query($conn, $check_sql);
-    
-    if($check_result && mysqli_num_rows($check_result) > 0) {
-        $error_message = "Error: Admin ID already exists!";
+    // Validate password
+    $passwordValidation = validatePassword($admin_password);
+    if ($passwordValidation !== true) {
+        $error_message = "Error: " . $passwordValidation;
     } else {
-        // Check if admin name already exists
-        $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name'";
-        $check_name_result = mysqli_query($conn, $check_name_sql);
+        // Check if admin ID already exists
+        $check_sql = "SELECT * FROM admins WHERE admin_id='$admin_id'";
+        $check_result = mysqli_query($conn, $check_sql);
         
-        if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
-            $error_message = "Error: Admin name already exists!";
+        if($check_result && mysqli_num_rows($check_result) > 0) {
+            $error_message = "Error: Admin ID already exists!";
         } else {
-            $sql = "INSERT INTO admins (admin_id, admin_name, admin_password, role, admin_status) VALUES ('$admin_id', '$admin_name', '$admin_password', '$role', '$admin_status')";
-            if(mysqli_query($conn, $sql)) {
-                $success_message = "Admin added successfully!";
+            // Check if admin name already exists
+            $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name'";
+            $check_name_result = mysqli_query($conn, $check_name_sql);
+            
+            if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
+                $error_message = "Error: Admin name already exists!";
             } else {
-                $error_message = "Error adding admin: " . mysqli_error($conn);
+                $sql = "INSERT INTO admins (admin_id, admin_name, admin_password, role, admin_status) VALUES ('$admin_id', '$admin_name', '$admin_password', '$role', '$admin_status')";
+                if(mysqli_query($conn, $sql)) {
+                    $success_message = "Admin added successfully!";
+                } else {
+                    $error_message = "Error adding admin: " . mysqli_error($conn);
+                }
             }
         }
     }
@@ -43,42 +74,48 @@ if (isset($_POST['update_admin'])) {
     $role = mysqli_real_escape_string($conn, $_POST['role']);
     $admin_status = mysqli_real_escape_string($conn, $_POST['admin_status']);
 
-    // Check if new admin ID already exists (if changed)
-    if ($id != $new_id) {
-        $check_sql = "SELECT * FROM admins WHERE admin_id='$new_id'";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if($check_result && mysqli_num_rows($check_result) > 0) {
-            $error_message = "Error: Admin ID already exists!";
+    // Validate password
+    $passwordValidation = validatePassword($admin_password);
+    if ($passwordValidation !== true) {
+        $error_message = "Error: " . $passwordValidation;
+    } else {
+        // Check if new admin ID already exists (if changed)
+        if ($id != $new_id) {
+            $check_sql = "SELECT * FROM admins WHERE admin_id='$new_id'";
+            $check_result = mysqli_query($conn, $check_sql);
+            
+            if($check_result && mysqli_num_rows($check_result) > 0) {
+                $error_message = "Error: Admin ID already exists!";
+            } else {
+                // Check if admin name already exists (excluding current admin)
+                $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
+                $check_name_result = mysqli_query($conn, $check_name_sql);
+                
+                if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
+                    $error_message = "Error: Admin name already exists!";
+                } else {
+                    $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
+                    if(mysqli_query($conn, $sql)) {
+                        $success_message = "Admin updated successfully!";
+                    } else {
+                        $error_message = "Error updating admin: " . mysqli_error($conn);
+                    }
+                }
+            }
         } else {
-            // Check if admin name already exists (excluding current admin)
+            // ID didn't change, check admin name and update other fields
             $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
             $check_name_result = mysqli_query($conn, $check_name_sql);
             
             if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
                 $error_message = "Error: Admin name already exists!";
             } else {
-                $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
+                $sql = "UPDATE admins SET admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
                 if(mysqli_query($conn, $sql)) {
                     $success_message = "Admin updated successfully!";
                 } else {
                     $error_message = "Error updating admin: " . mysqli_error($conn);
                 }
-            }
-        }
-    } else {
-        // ID didn't change, check admin name and update other fields
-        $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
-        $check_name_result = mysqli_query($conn, $check_name_sql);
-        
-        if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
-            $error_message = "Error: Admin name already exists!";
-        } else {
-            $sql = "UPDATE admins SET admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
-            if(mysqli_query($conn, $sql)) {
-                $success_message = "Admin updated successfully!";
-            } else {
-                $error_message = "Error updating admin: " . mysqli_error($conn);
             }
         }
     }
@@ -428,6 +465,28 @@ if (!$result) {
             border: 1px solid rgba(243, 156, 18, 0.3);
         }
         
+        .password-requirements {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .password-requirements h4 {
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .password-requirements ul {
+            margin-left: 20px;
+        }
+        
+        .password-requirements li {
+            margin-bottom: 5px;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -490,6 +549,17 @@ if (!$result) {
         
         <div class="card">
             <h2>Add New Admin</h2>
+            
+            <div class="password-requirements">
+                <h4>Password Requirements:</h4>
+                <ul>
+                    <li>At least 8 characters long</li>
+                    <li>Contains at least one letter (a-z, A-Z)</li>
+                    <li>Contains at least one number (0-9)</li>
+                    <li>Contains at least one special character (!@#$%^&*()-_=+{};:,<.>)</li>
+                </ul>
+            </div>
+            
             <form method="POST" action="">
                 <div class="form-row">
                     <div class="form-group">
@@ -586,6 +656,17 @@ if (!$result) {
                 <h2>Edit Admin</h2>
                 <button class="close-btn" onclick="closeEditModal()">&times;</button>
             </div>
+            
+            <div class="password-requirements">
+                <h4>Password Requirements:</h4>
+                <ul>
+                    <li>At least 8 characters long</li>
+                    <li>Contains at least one letter (a-z, A-Z)</li>
+                    <li>Contains at least one number (0-9)</li>
+                    <li>Contains at least one special character (!@#$%^&*()-_=+{};:,<.>)</li>
+                </ul>
+            </div>
+            
             <form method="POST" action="">
                 <input type="hidden" id="editId" name="admin_id">
                 <div class="form-group">
