@@ -40,6 +40,31 @@ if (isset($_POST['add_product'])) {
     $description = mysqli_real_escape_string($conn, $_POST['product_description']);
     $status = "Available"; // Automatically set to Available
 
+    // Handle image upload
+    $image_path = '';
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+        $target_dir = "uploads/";
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
+        
+        $image_extension = pathinfo($_FILES['product_image']['name'], PATHINFO_EXTENSION);
+        $image_filename = $product_id . '.' . $image_extension;
+        $target_file = $target_dir . $image_filename;
+        
+        // Check if image file is a actual image
+        $check = getimagesize($_FILES['product_image']['tmp_name']);
+        if ($check !== false) {
+            if (move_uploaded_file($_FILES['product_image']['tmp_name'], $target_file)) {
+                $image_path = $target_file;
+            } else {
+                $error_message = "Sorry, there was an error uploading your file.";
+            }
+        } else {
+            $error_message = "File is not an image.";
+        }
+    }
+
     // Check if product name already exists in the same category
     $table_name = $category;
     $check_sql = "SELECT * FROM $table_name WHERE product_name='$name'";
@@ -48,8 +73,14 @@ if (isset($_POST['add_product'])) {
     if($check_result && mysqli_num_rows($check_result) > 0) {
         $error_message = "Error: Product name already exists in this category!";
     } else {
-        $sql = "INSERT INTO $table_name (product_id, product_name, product_price, product_description, product_status) 
-                VALUES ('$product_id', '$name', '$price', '$description', '$status')";
+        if ($image_path) {
+            $sql = "INSERT INTO $table_name (product_id, product_name, product_price, product_description, product_status, product_image) 
+                    VALUES ('$product_id', '$name', '$price', '$description', '$status', '$image_path')";
+        } else {
+            $sql = "INSERT INTO $table_name (product_id, product_name, product_price, product_description, product_status) 
+                    VALUES ('$product_id', '$name', '$price', '$description', '$status')";
+        }
+        
         if(mysqli_query($conn, $sql)) {
             $success_message = "Product added successfully to " . $categories[$category]['name'] . "! Auto-generated ID: " . $product_id;
         } else {
@@ -58,28 +89,39 @@ if (isset($_POST['add_product'])) {
     }
 }
 
-// Handle Update Product Status
-if (isset($_POST['update_status'])) {
-    $category = mysqli_real_escape_string($conn, $_POST['category']);
-    $id = mysqli_real_escape_string($conn, $_POST['product_id']);
-    $status = mysqli_real_escape_string($conn, $_POST['product_status']);
-
-    $table_name = $category;
-    $sql = "UPDATE $table_name SET product_status='$status' WHERE product_id='$id'";
-    if(mysqli_query($conn, $sql)) {
-        $success_message = "Product status updated successfully!";
-    } else {
-        $error_message = "Error updating product status: " . mysqli_error($conn);
-    }
-}
-
-// Handle Update Product Details
+// Handle Update Product (combined with status update)
 if (isset($_POST['update_product'])) {
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $id = mysqli_real_escape_string($conn, $_POST['product_id']);
     $name = mysqli_real_escape_string($conn, $_POST['product_name']);
     $price = mysqli_real_escape_string($conn, $_POST['product_price']);
     $description = mysqli_real_escape_string($conn, $_POST['product_description']);
+    $status = mysqli_real_escape_string($conn, $_POST['product_status']);
+
+    // Handle image upload for update
+    $image_update = '';
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+        $target_dir = "uploads/";
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
+        
+        $image_extension = pathinfo($_FILES['product_image']['name'], PATHINFO_EXTENSION);
+        $image_filename = $id . '.' . $image_extension;
+        $target_file = $target_dir . $image_filename;
+        
+        // Check if image file is a actual image
+        $check = getimagesize($_FILES['product_image']['tmp_name']);
+        if ($check !== false) {
+            if (move_uploaded_file($_FILES['product_image']['tmp_name'], $target_file)) {
+                $image_update = ", product_image = '$target_file'";
+            } else {
+                $error_message = "Sorry, there was an error uploading your file.";
+            }
+        } else {
+            $error_message = "File is not an image.";
+        }
+    }
 
     $table_name = $category;
     // Check if product name already exists (excluding current product)
@@ -89,7 +131,7 @@ if (isset($_POST['update_product'])) {
     if($check_result && mysqli_num_rows($check_result) > 0) {
         $error_message = "Error: Product name already exists in this category!";
     } else {
-        $sql = "UPDATE $table_name SET product_name='$name', product_price='$price', product_description='$description' WHERE product_id='$id'";
+        $sql = "UPDATE $table_name SET product_name='$name', product_price='$price', product_description='$description', product_status='$status' $image_update WHERE product_id='$id'";
         if(mysqli_query($conn, $sql)) {
             $success_message = "Product updated successfully!";
         } else {
@@ -98,25 +140,81 @@ if (isset($_POST['update_product'])) {
     }
 }
 
-// Handle Search
+// Handle Search and Sorting
 $search_query = "";
-$selected_category = isset($_GET['category']) ? $_GET['category'] : 'main_food';
+$selected_category = isset($_GET['category']) ? $_GET['category'] : 'all';
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'product_id';
+$sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'ASC';
 
 if (isset($_GET['search'])) {
     $search_query = mysqli_real_escape_string($conn, $_GET['search']);
     $selected_category = mysqli_real_escape_string($conn, $_GET['category']);
+    $sort_by = mysqli_real_escape_string($conn, $_GET['sort_by']);
+    $sort_order = mysqli_real_escape_string($conn, $_GET['sort_order']);
     
-    $table_name = $selected_category;
-    $sql = "SELECT * FROM $table_name WHERE 
-            product_id LIKE '%$search_query%' OR 
-            product_name LIKE '%$search_query%' OR 
-            product_description LIKE '%$search_query%'";
+    if ($selected_category == 'all') {
+        // Search across all categories
+        $all_results = [];
+        foreach($categories as $key => $cat) {
+            $table_name = $key;
+            $sql = "SELECT *, '$key' as category FROM $table_name WHERE 
+                    product_id LIKE '%$search_query%' OR 
+                    product_name LIKE '%$search_query%' OR 
+                    product_description LIKE '%$search_query%'";
+            $result = mysqli_query($conn, $sql);
+            if ($result && mysqli_num_rows($result) > 0) {
+                while($row = mysqli_fetch_assoc($result)) {
+                    $all_results[] = $row;
+                }
+            }
+        }
+        // Sort the combined results
+        usort($all_results, function($a, $b) use ($sort_by, $sort_order) {
+            if ($sort_order == 'ASC') {
+                return $a[$sort_by] <=> $b[$sort_by];
+            } else {
+                return $b[$sort_by] <=> $a[$sort_by];
+            }
+        });
+        $result = $all_results;
+    } else {
+        $table_name = $selected_category;
+        $sql = "SELECT * FROM $table_name WHERE 
+                product_id LIKE '%$search_query%' OR 
+                product_name LIKE '%$search_query%' OR 
+                product_description LIKE '%$search_query%' 
+                ORDER BY $sort_by $sort_order";
+        $result = mysqli_query($conn, $sql);
+    }
 } else {
-    $table_name = $selected_category;
-    $sql = "SELECT * FROM $table_name ORDER BY product_id ASC";
+    if ($selected_category == 'all') {
+        // Get all products from all categories
+        $all_results = [];
+        foreach($categories as $key => $cat) {
+            $table_name = $key;
+            $sql = "SELECT *, '$key' as category FROM $table_name";
+            $cat_result = mysqli_query($conn, $sql);
+            if ($cat_result && mysqli_num_rows($cat_result) > 0) {
+                while($row = mysqli_fetch_assoc($cat_result)) {
+                    $all_results[] = $row;
+                }
+            }
+        }
+        // Sort the combined results
+        usort($all_results, function($a, $b) use ($sort_by, $sort_order) {
+            if ($sort_order == 'ASC') {
+                return $a[$sort_by] <=> $b[$sort_by];
+            } else {
+                return $b[$sort_by] <=> $a[$sort_by];
+            }
+        });
+        $result = $all_results;
+    } else {
+        $table_name = $selected_category;
+        $sql = "SELECT * FROM $table_name ORDER BY $sort_by $sort_order";
+        $result = mysqli_query($conn, $sql);
+    }
 }
-
-$result = mysqli_query($conn, $sql);
 
 if (!$result) {
     $error_message = "Database error: " . mysqli_error($conn);
@@ -128,7 +226,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JC Restaurant - Product Management</title>
+    <title>JC Restaurant - Menu Management</title>
     <style>
         :root {
             --primary: #3498db;
@@ -339,6 +437,30 @@ if (!$result) {
             background-color: var(--light);
             font-weight: 600;
             color: var(--secondary);
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        
+        th:hover {
+            background-color: #dfe6e9;
+        }
+        
+        .sortable:after {
+            content: '↕';
+            margin-left: 5px;
+            color: var(--primary);
+            font-size: 12px;
+        }
+        
+        .sort-asc:after {
+            content: '↑';
+            color: var(--primary);
+        }
+        
+        .sort-desc:after {
+            content: '↓';
+            color: var(--primary);
         }
         
         tr:hover {
@@ -348,6 +470,8 @@ if (!$result) {
         .actions {
             display: flex;
             gap: 10px;
+            justify-content: center;
+            align-items: center;
         }
         
         .action-btn {
@@ -361,6 +485,7 @@ if (!$result) {
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            min-width: 80px;
         }
         
         .edit-btn {
@@ -370,15 +495,6 @@ if (!$result) {
         
         .edit-btn:hover {
             background-color: var(--primary-dark);
-        }
-        
-        .status-btn {
-            background-color: #f39c12;
-            color: white;
-        }
-        
-        .status-btn:hover {
-            background-color: #e67e22;
         }
         
         .status-available {
@@ -391,10 +507,28 @@ if (!$result) {
             font-weight: 600;
         }
         
+        /* Center the actions column */
+        td:last-child {
+            text-align: center;
+        }
+        
+        /* Ensure the actions column header is also centered */
+        th:last-child {
+            text-align: center;
+        }
+        
+        .search-sort-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
         .search-container {
             display: flex;
-            margin-bottom: 20px;
             gap: 15px;
+            flex: 1;
+            min-width: 300px;
         }
         
         .search-input {
@@ -420,10 +554,40 @@ if (!$result) {
             background-color: var(--primary-dark);
         }
         
+        .sort-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .sort-select {
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+        }
+        
+        .sort-order-btn {
+            background-color: var(--light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 12px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .sort-order-btn:hover {
+            background-color: #dde4e6;
+        }
+        
         .category-tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
         }
         
         .category-tab {
@@ -523,6 +687,51 @@ if (!$result) {
             font-size: 14px;
         }
         
+        .product-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            display: none;
+        }
+        
+        .image-upload-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .image-upload-preview {
+            flex: 0 0 auto;
+        }
+        
+        .image-upload-controls {
+            flex: 1;
+        }
+        
+        .no-image {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -553,12 +762,20 @@ if (!$result) {
                 flex-direction: column;
             }
             
-            .search-container {
+            .search-sort-container {
                 flex-direction: column;
+            }
+            
+            .search-container {
+                min-width: 100%;
             }
             
             .category-tabs {
                 flex-wrap: wrap;
+            }
+            
+            .image-upload-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -570,7 +787,7 @@ if (!$result) {
             <a href="#">HOME</a>
             <a href="manage_admins.php">ADMIN</a>
             <a href="customer_management.php">CUSTOMERS</a>
-            <a href="manage_products.php" class="active">PRODUCTS</a>
+            <a href="manage_products.php" class="active">MENU</a>
             <a href="#">ORDER HISTORY</a>
             <a href="#">REPORTS</a>
         </div>
@@ -579,7 +796,7 @@ if (!$result) {
     
     <div class="container">
         <header>
-            <h1>Product Management</h1>
+            <h1>Menu Management</h1>
             <p class="subtitle">Manage menu items across different categories</p>
         </header>
         
@@ -592,7 +809,7 @@ if (!$result) {
         <?php endif; ?>
         
         <div class="card">
-            <h2>Add New Product</h2>
+            <h2>Add New Menu Item</h2>
             <div class="info-box">
                 <strong>Note:</strong> Product ID will be automatically generated based on the category you select.
                 <div class="id-prefix-info">
@@ -603,7 +820,7 @@ if (!$result) {
                     <?php endforeach; ?>
                 </div>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="category">Product Category</label>
@@ -626,7 +843,11 @@ if (!$result) {
                         <input type="number" id="productPrice" name="product_price" step="0.01" min="0" placeholder="Enter price" required>
                     </div>
                     <div class="form-group">
-                        <!-- Empty for alignment -->
+                        <label for="productImage">Product Image</label>
+                        <input type="file" id="productImage" name="product_image" accept="image/*" onchange="previewImage(this, 'addPreview')">
+                        <div id="addPreviewContainer">
+                            <img id="addPreview" class="image-preview" src="#" alt="Image Preview">
+                        </div>
                     </div>
                 </div>
                 
@@ -644,10 +865,14 @@ if (!$result) {
         </div>
         
         <div class="card">
-            <h2>Product List</h2>
+            <h2>Menu List</h2>
             
             <!-- Category Tabs -->
             <div class="category-tabs">
+                <button class="category-tab <?php echo $selected_category == 'all' ? 'active' : ''; ?>" 
+                        onclick="changeCategory('all')">
+                    All Categories
+                </button>
                 <?php foreach($categories as $key => $cat): ?>
                     <button class="category-tab <?php echo $selected_category == $key ? 'active' : ''; ?>" 
                             onclick="changeCategory('<?php echo $key; ?>')">
@@ -656,31 +881,55 @@ if (!$result) {
                 <?php endforeach; ?>
             </div>
             
-            <!-- Search Form -->
+            <!-- Search and Sort Form -->
             <form method="GET" action="">
                 <input type="hidden" name="category" value="<?php echo $selected_category; ?>">
-                <div class="search-container">
-                    <input type="text" class="search-input" name="search" placeholder="Search products by ID, name, or description..." value="<?php echo htmlspecialchars($search_query); ?>">
-                    <button type="submit" class="search-button">Search</button>
+                <div class="search-sort-container">
+                    <div class="search-container">
+                        <input type="text" class="search-input" name="search" placeholder="Search products by ID, name, or description..." value="<?php echo htmlspecialchars($search_query); ?>">
+                        <button type="submit" class="search-button">Search</button>
+                    </div>
+                    <div class="sort-container">
+                        <select name="sort_by" class="sort-select" onchange="this.form.submit()">
+                            <option value="product_id" <?php echo $sort_by == 'product_id' ? 'selected' : ''; ?>>Sort by ID</option>
+                            <option value="product_name" <?php echo $sort_by == 'product_name' ? 'selected' : ''; ?>>Sort by Name</option>
+                            <option value="product_price" <?php echo $sort_by == 'product_price' ? 'selected' : ''; ?>>Sort by Price</option>
+                            <option value="product_status" <?php echo $sort_by == 'product_status' ? 'selected' : ''; ?>>Sort by Status</option>
+                        </select>
+                        <button type="submit" name="sort_order" value="<?php echo $sort_order == 'ASC' ? 'DESC' : 'ASC'; ?>" class="sort-order-btn">
+                            <?php echo $sort_order == 'ASC' ? '↑ Asc' : '↓ Desc'; ?>
+                        </button>
+                    </div>
                 </div>
             </form>
             
-            <?php if ($result && mysqli_num_rows($result) > 0): ?>
+            <?php if (($selected_category == 'all' && is_array($result) && count($result) > 0) || ($selected_category != 'all' && $result && mysqli_num_rows($result) > 0)): ?>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Price (RM)</th>
-                        <th>Status</th>
+                        <th class="sortable <?php echo $sort_by == 'product_id' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('product_id')">ID</th>
+                        <th>Image</th>
+                        <th class="sortable <?php echo $sort_by == 'product_name' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('product_name')">Name</th>
+                        <th class="sortable <?php echo $sort_by == 'product_price' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('product_price')">Price (RM)</th>
+                        <th class="sortable <?php echo $sort_by == 'product_status' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('product_status')">Status</th>
                         <th>Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while($row = mysqli_fetch_assoc($result)) { ?>
+                    <?php 
+                    if ($selected_category == 'all') {
+                        foreach($result as $row) { 
+                    ?>
                     <tr>
                         <td><?php echo $row['product_id']; ?></td>
+                        <td>
+                            <?php if (!empty($row['product_image']) && file_exists($row['product_image'])): ?>
+                                <img src="<?php echo $row['product_image']; ?>" alt="<?php echo $row['product_name']; ?>" class="product-image">
+                            <?php else: ?>
+                                <div class="no-image">No Image</div>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo $row['product_name']; ?></td>
                         <td><?php echo number_format($row['product_price'], 2); ?></td>
                         <td>
@@ -691,49 +940,107 @@ if (!$result) {
                             <?php endif; ?>
                         </td>
                         <td><?php echo $row['product_description']; ?></td>
-                        <td class="actions">
-                            <button class="action-btn edit-btn" onclick="openEditModal(
-                                '<?php echo $selected_category; ?>',
-                                '<?php echo $row['product_id']; ?>',
-                                '<?php echo addslashes($row['product_name']); ?>',
-                                '<?php echo $row['product_price']; ?>',
-                                '<?php echo addslashes($row['product_description']); ?>'
-                            )">Edit</button>
-                            <button class="action-btn status-btn" onclick="openStatusModal(
-                                '<?php echo $selected_category; ?>',
-                                '<?php echo $row['product_id']; ?>',
-                                '<?php echo $row['product_status']; ?>'
-                            )">Change Status</button>
+                        <td>
+                            <div class="actions">
+                                <button class="action-btn edit-btn" onclick="openEditModal(
+                                    '<?php echo $row['category']; ?>',
+                                    '<?php echo $row['product_id']; ?>',
+                                    '<?php echo addslashes($row['product_name']); ?>',
+                                    '<?php echo $row['product_price']; ?>',
+                                    '<?php echo addslashes($row['product_description']); ?>',
+                                    '<?php echo !empty($row['product_image']) ? $row['product_image'] : ''; ?>',
+                                    '<?php echo $row['product_status']; ?>'
+                                )">Edit</button>
+                            </div>
                         </td>
                     </tr>
-                    <?php } ?>
+                    <?php } 
+                    } else {
+                        while($row = mysqli_fetch_assoc($result)) { 
+                    ?>
+                    <tr>
+                        <td><?php echo $row['product_id']; ?></td>
+                        <td>
+                            <?php if (!empty($row['product_image']) && file_exists($row['product_image'])): ?>
+                                <img src="<?php echo $row['product_image']; ?>" alt="<?php echo $row['product_name']; ?>" class="product-image">
+                            <?php else: ?>
+                                <div class="no-image">No Image</div>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo $row['product_name']; ?></td>
+                        <td><?php echo number_format($row['product_price'], 2); ?></td>
+                        <td>
+                            <?php if ($row['product_status'] == 'Available'): ?>
+                                <span class="status-available">Available</span>
+                            <?php else: ?>
+                                <span class="status-soldout">Sold Out</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo $row['product_description']; ?></td>
+                        <td>
+                            <div class="actions">
+                                <button class="action-btn edit-btn" onclick="openEditModal(
+                                    '<?php echo $selected_category; ?>',
+                                    '<?php echo $row['product_id']; ?>',
+                                    '<?php echo addslashes($row['product_name']); ?>',
+                                    '<?php echo $row['product_price']; ?>',
+                                    '<?php echo addslashes($row['product_description']); ?>',
+                                    '<?php echo !empty($row['product_image']) ? $row['product_image'] : ''; ?>',
+                                    '<?php echo $row['product_status']; ?>'
+                                )">Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php } 
+                    } ?>
                 </tbody>
             </table>
             <?php elseif (!$result): ?>
                 <div class="alert alert-error">Error loading product list. Please check if the database tables exist.</div>
             <?php else: ?>
-                <p>No products found in <?php echo $categories[$selected_category]['name']; ?> category.</p>
+                <p>No products found<?php echo $selected_category != 'all' ? ' in ' . $categories[$selected_category]['name'] : ''; ?> category.</p>
             <?php endif; ?>
         </div>
     </div>
     
-    <!-- Edit Product Modal -->
+    <!-- Edit Product Modal (Combined with Status) -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Product</h2>
                 <button class="close-btn" onclick="closeEditModal()">&times;</button>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <input type="hidden" id="editCategory" name="category">
                 <input type="hidden" id="editId" name="product_id">
                 <div class="form-group">
                     <label for="editName">Product Name</label>
                     <input type="text" id="editName" name="product_name" placeholder="Enter product name" required>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPrice">Price (RM)</label>
+                        <input type="number" id="editPrice" name="product_price" step="0.01" min="0" placeholder="Enter price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus" name="product_status" required>
+                            <option value="Available">Available</option>
+                            <option value="Sold Out">Sold Out</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="editPrice">Price (RM)</label>
-                    <input type="number" id="editPrice" name="product_price" step="0.01" min="0" placeholder="Enter price" required>
+                    <label for="editImage">Product Image</label>
+                    <div class="image-upload-container">
+                        <div class="image-upload-preview">
+                            <img id="editPreview" class="image-preview" src="#" alt="Image Preview">
+                        </div>
+                        <div class="image-upload-controls">
+                            <input type="file" id="editImage" name="product_image" accept="image/*" onchange="previewImage(this, 'editPreview')">
+                            <p style="font-size: 12px; color: #666; margin-top: 5px;">Leave empty to keep current image</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="editDescription">Description</label>
@@ -746,71 +1053,71 @@ if (!$result) {
             </form>
         </div>
     </div>
-    
-    <!-- Change Status Modal -->
-    <div class="modal" id="statusModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Change Product Status</h2>
-                <button class="close-btn" onclick="closeStatusModal()">&times;</button>
-            </div>
-            <form method="POST" action="">
-                <input type="hidden" id="statusCategory" name="category">
-                <input type="hidden" id="statusId" name="product_id">
-                <div class="form-group">
-                    <label for="statusSelect">Status</label>
-                    <select id="statusSelect" name="product_status" required>
-                        <option value="Available">Available</option>
-                        <option value="Sold Out">Sold Out</option>
-                    </select>
-                </div>
-                <div class="btn-group">
-                    <button type="submit" name="update_status" class="btn btn-primary">Update Status</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <script>
         function changeCategory(category) {
-            window.location.href = '?category=' + category;
+            window.location.href = '?category=' + category + '&sort_by=<?php echo $sort_by; ?>&sort_order=<?php echo $sort_order; ?>';
         }
         
-        function openEditModal(category, id, name, price, description) {
+        function sortTable(column) {
+            const currentSortBy = '<?php echo $sort_by; ?>';
+            const currentSortOrder = '<?php echo $sort_order; ?>';
+            
+            let newSortOrder = 'ASC';
+            if (currentSortBy === column) {
+                newSortOrder = currentSortOrder === 'ASC' ? 'DESC' : 'ASC';
+            }
+            
+            window.location.href = '?category=<?php echo $selected_category; ?>&search=<?php echo urlencode($search_query); ?>&sort_by=' + column + '&sort_order=' + newSortOrder;
+        }
+        
+        function openEditModal(category, id, name, price, description, imagePath, status) {
             document.getElementById('editCategory').value = category;
             document.getElementById('editId').value = id;
             document.getElementById('editName').value = name;
             document.getElementById('editPrice').value = price;
             document.getElementById('editDescription').value = description;
+            document.getElementById('editStatus').value = status;
+            
+            // Set image preview
+            const preview = document.getElementById('editPreview');
+            if (imagePath) {
+                preview.src = imagePath;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+            
             document.getElementById('editModal').style.display = 'flex';
         }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
         }
-        
-        function openStatusModal(category, id, status) {
-            document.getElementById('statusCategory').value = category;
-            document.getElementById('statusId').value = id;
-            document.getElementById('statusSelect').value = status;
-            document.getElementById('statusModal').style.display = 'flex';
-        }
 
-        function closeStatusModal() {
-            document.getElementById('statusModal').style.display = 'none';
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
         }
 
         // Close modal when clicking outside
         window.onclick = function(event) {
             const editModal = document.getElementById('editModal');
-            const statusModal = document.getElementById('statusModal');
-            
             if (event.target === editModal) {
                 closeEditModal();
-            }
-            if (event.target === statusModal) {
-                closeStatusModal();
             }
         }
     </script>
