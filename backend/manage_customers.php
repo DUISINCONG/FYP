@@ -1,126 +1,6 @@
 <?php
 include 'db_connect.php';
 
-// Password validation function
-function validatePassword($password) {
-    // Check password length
-    if (strlen($password) < 8) {
-        return "Password must be at least 8 characters long";
-    }
-    
-    // Check if contains letters
-    if (!preg_match('/[a-zA-Z]/', $password)) {
-        return "Password must contain at least one letter";
-    }
-    
-    // Check if contains numbers
-    if (!preg_match('/[0-9]/', $password)) {
-        return "Password must contain at least one number";
-    }
-    
-    // Check if contains special characters
-    if (!preg_match('/[?!@#$%^&*()\-_=+{};:,<.>]/', $password)) {
-        return "Password must contain at least one special character (?!@#$%^&*()-_=+{};:,<.>)";
-    }
-    
-    return true; // Password is valid
-}
-
-// Email validation function
-function validateEmail($email) {
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return "Please enter a valid email address format (e.g., example@gmail.com)";
-    }
-    
-    // Additional check for common email providers
-    $email_parts = explode('@', $email);
-    if (count($email_parts) !== 2) {
-        return "Invalid email format";
-    }
-    
-    $domain = strtolower($email_parts[1]);
-    $allowed_domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'];
-    
-    // You can add more domains or remove this check if you want to allow all valid emails
-    if (!in_array($domain, $allowed_domains)) {
-        return "Please use a valid email provider (Gmail, Yahoo, Hotmail, Outlook, iCloud)";
-    }
-    
-    return true;
-}
-
-// Phone number validation function
-function validatePhone($phone) {
-    // Remove any non-digit characters
-    $cleaned_phone = preg_replace('/[^0-9]/', '', $phone);
-    
-    // Check if it's a valid length (10 digits for most countries, 11 if including country code)
-    if (strlen($cleaned_phone) < 10 || strlen($cleaned_phone) > 15) {
-        return "Phone number should be between 10-15 digits";
-    }
-    
-    // Check if it contains only numbers after cleaning
-    if (!preg_match('/^[0-9]+$/', $cleaned_phone)) {
-        return "Phone number should contain only numbers";
-    }
-    
-    // Common phone number patterns
-    if (!preg_match('/^[0-9]{10,15}$/', $cleaned_phone)) {
-        return "Invalid phone number format";
-    }
-    
-    return true;
-}
-
-// Handle Add Customer
-if (isset($_POST['add_customer'])) {
-    $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
-    $customer_name = mysqli_real_escape_string($conn, $_POST['customer_name']);
-    $customer_email = mysqli_real_escape_string($conn, $_POST['customer_email']);
-    $customer_phone = mysqli_real_escape_string($conn, $_POST['customer_phone']);
-    $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
-    // Set status to active by default for new customers
-    $customer_status = 'active';
-
-    // Validate email
-    $emailValidation = validateEmail($customer_email);
-    if ($emailValidation !== true) {
-        $error_message = "Error: " . $emailValidation;
-    }
-    // Validate phone
-    elseif (($phoneValidation = validatePhone($customer_phone)) !== true) {
-        $error_message = "Error: " . $phoneValidation;
-    }
-    // Validate password
-    elseif (($passwordValidation = validatePassword($customer_password)) !== true) {
-        $error_message = "Error: " . $passwordValidation;
-    }
-    else {
-        // Check if customer ID already exists
-        $check_sql = "SELECT * FROM customers WHERE customer_id='$customer_id'";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if($check_result && mysqli_num_rows($check_result) > 0) {
-            $error_message = "Error: Customer ID already exists!";
-        } else {
-            // Check if email already exists
-            $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email'";
-            $check_email_result = mysqli_query($conn, $check_email_sql);
-            
-            if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-                $error_message = "Error: Email already exists!";
-            } else {
-                $sql = "INSERT INTO customers (customer_id, customer_name, customer_email, customer_phone, customer_password, customer_status) VALUES ('$customer_id', '$customer_name', '$customer_email', '$customer_phone', '$customer_password', '$customer_status')";
-                if(mysqli_query($conn, $sql)) {
-                    $success_message = "Customer added successfully!";
-                } else {
-                    $error_message = "Error adding customer: " . mysqli_error($conn);
-                }
-            }
-        }
-    }
-}
-
 // Handle Update Customer
 if (isset($_POST['update_customer'])) {
     $id = mysqli_real_escape_string($conn, $_POST['customer_id']);
@@ -131,52 +11,22 @@ if (isset($_POST['update_customer'])) {
     $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
     $customer_status = mysqli_real_escape_string($conn, $_POST['customer_status']);
 
-    // Validate email
-    $emailValidation = validateEmail($customer_email);
-    if ($emailValidation !== true) {
-        $error_message = "Error: " . $emailValidation;
-    }
-    // Validate phone
-    elseif (($phoneValidation = validatePhone($customer_phone)) !== true) {
-        $error_message = "Error: " . $phoneValidation;
-    }
-    // Validate password
-    elseif (($passwordValidation = validatePassword($customer_password)) !== true) {
-        $error_message = "Error: " . $passwordValidation;
-    }
-    else {
-        // Check if new customer ID already exists (if changed)
-        if ($id != $new_id) {
-            $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
-            $check_result = mysqli_query($conn, $check_sql);
-            
-            if($check_result && mysqli_num_rows($check_result) > 0) {
-                $error_message = "Error: Customer ID already exists!";
-            } else {
-                // Check if email already exists (excluding current customer)
-                $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
-                $check_email_result = mysqli_query($conn, $check_email_sql);
-                
-                if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-                    $error_message = "Error: Email already exists!";
-                } else {
-                    $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
-                    if(mysqli_query($conn, $sql)) {
-                        $success_message = "Customer updated successfully!";
-                    } else {
-                        $error_message = "Error updating customer: " . mysqli_error($conn);
-                    }
-                }
-            }
+    // Check if new customer ID already exists (if changed)
+    if ($id != $new_id) {
+        $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
+        $check_result = mysqli_query($conn, $check_sql);
+        
+        if($check_result && mysqli_num_rows($check_result) > 0) {
+            $error_message = "Error: Customer ID already exists!";
         } else {
-            // ID didn't change, check email and update other fields
+            // Check if email already exists (excluding current customer)
             $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
             $check_email_result = mysqli_query($conn, $check_email_sql);
             
             if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
                 $error_message = "Error: Email already exists!";
             } else {
-                $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
+                $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
                 if(mysqli_query($conn, $sql)) {
                     $success_message = "Customer updated successfully!";
                 } else {
@@ -184,21 +34,46 @@ if (isset($_POST['update_customer'])) {
                 }
             }
         }
+    } else {
+        // ID didn't change, check email and update other fields
+        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
+        $check_email_result = mysqli_query($conn, $check_email_sql);
+        
+        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+            $error_message = "Error: Email already exists!";
+        } else {
+            $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
+            if(mysqli_query($conn, $sql)) {
+                $success_message = "Customer updated successfully!";
+            } else {
+                $error_message = "Error updating customer: " . mysqli_error($conn);
+            }
+        }
     }
 }
 
-// Handle Search
+// Handle Search and Sort
 $search = '';
+$sort_by = 'customer_id';
+
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = mysqli_real_escape_string($conn, $_GET['search']);
+}
+
+if (isset($_GET['sort_by']) && !empty($_GET['sort_by'])) {
+    $sort_by = mysqli_real_escape_string($conn, $_GET['sort_by']);
+}
+
+// Build the SQL query
+if (!empty($search)) {
     $sql = "SELECT * FROM customers WHERE 
             customer_id LIKE '%$search%' OR 
             customer_name LIKE '%$search%' OR 
             customer_email LIKE '%$search%' OR 
             customer_phone LIKE '%$search%' 
-            ORDER BY customer_id";
+            ORDER BY $sort_by";
 } else {
-    $sql = "SELECT * FROM customers ORDER BY customer_id";
+    $sql = "SELECT * FROM customers ORDER BY $sort_by";
 }
 
 $result = mysqli_query($conn, $sql);
@@ -345,7 +220,8 @@ if (!$result) {
         input[type="password"],
         input[type="tel"],
         input[type="number"],
-        input[type="search"] {
+        input[type="search"],
+        select {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border);
@@ -354,7 +230,8 @@ if (!$result) {
             transition: border 0.3s;
         }
         
-        input:focus {
+        input:focus,
+        select:focus {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
@@ -432,6 +309,26 @@ if (!$result) {
             background-color: var(--primary-dark);
         }
         
+        .sort-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .sort-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .sort-label {
+            font-weight: 600;
+            color: var(--secondary);
+            white-space: nowrap;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
@@ -448,6 +345,18 @@ if (!$result) {
             background-color: var(--light);
             font-weight: 600;
             color: var(--secondary);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        
+        th:hover {
+            background-color: #dfe6e9;
+        }
+        
+        .sort-indicator {
+            margin-left: 5px;
+            font-size: 12px;
         }
         
         tr:hover {
@@ -554,28 +463,6 @@ if (!$result) {
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
         
-        .requirements {
-            background-color: #f8f9fa;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .requirements h4 {
-            margin-bottom: 10px;
-            color: var(--secondary);
-        }
-        
-        .requirements ul {
-            margin-left: 20px;
-        }
-        
-        .requirements li {
-            margin-bottom: 5px;
-        }
-        
         .input-hint {
             font-size: 12px;
             color: #7f8c8d;
@@ -616,6 +503,11 @@ if (!$result) {
             .search-container {
                 flex-direction: column;
             }
+            
+            .sort-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -625,7 +517,7 @@ if (!$result) {
         <div class="nav-menu">
             <a href="#">HOME</a>
             <a href="manage_admins.php">ADMIN</a>
-            <a href="customer_management.php" class="active">CUSTOMERS</a>
+            <a href="manage_customers.php" class="active">CUSTOMERS</a>
             <a href="#">MENU</a>
             <a href="#">ORDER HISTORY</a>
             <a href="#">REPORTS</a>
@@ -648,69 +540,6 @@ if (!$result) {
         <?php endif; ?>
         
         <div class="card">
-            <h2>Add New Customer</h2>
-            
-            <div class="requirements">
-                <h4>Requirements:</h4>
-                <ul>
-                    <li><strong>Email:</strong> Must be a valid email format (e.g., example@gmail.com)</li>
-                    <li><strong>Phone:</strong> 10-15 digits only (e.g., 0123456789)</li>
-                    <li><strong>Password:</strong> 
-                        <ul>
-                            <li>At least 8 characters long</li>
-                            <li>Contains at least one letter (a-z, A-Z)</li>
-                            <li>Contains at least one number (0-9)</li>
-                            <li>Contains at least one special character (?!@#$%^&*()-_=+{};:,<.>)</li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            
-            <form method="POST" action="">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customer_id">Customer ID</label>
-                        <input type="number" id="customer_id" name="customer_id" placeholder="Enter customer ID" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customer_name">Full Name</label>
-                        <input type="text" id="customer_name" name="customer_name" placeholder="Enter customer name" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customer_phone">Phone Number</label>
-                        <input type="tel" id="customer_phone" name="customer_phone" placeholder="e.g., 0123456789" required>
-                        <div class="input-hint">10-15 digits only (numbers only)</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="customer_email">Email Address</label>
-                        <input type="email" id="customer_email" name="customer_email" placeholder="e.g., example@gmail.com" required>
-                        <div class="input-hint">Must be a valid email address</div>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customer_password">Password</label>
-                        <input type="password" id="customer_password" name="customer_password" placeholder="Enter password" required>
-                        <div class="input-hint">Must meet all password requirements above</div>
-                    </div>
-                    <div class="form-group">
-                        <!-- Empty for alignment -->
-                    </div>
-                </div>
-                
-                <div class="divider"></div>
-                
-                <div class="btn-group">
-                    <button type="submit" name="add_customer" class="btn btn-primary">Save Customer</button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="card">
             <h2>Customer List</h2>
             
             <!-- Search Form -->
@@ -718,19 +547,50 @@ if (!$result) {
                 <input type="search" name="search" class="search-input" placeholder="Search by ID, name, email, or phone..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit" class="search-btn">Search</button>
                 <?php if (!empty($search)): ?>
-                    <a href="customer_management.php" class="btn btn-secondary">Clear</a>
+                    <a href="manage_customers.php" class="btn btn-secondary">Clear</a>
                 <?php endif; ?>
             </form>
+            
+            <!-- Sort Options -->
+            <div class="sort-container">
+                <div class="sort-group">
+                    <span class="sort-label">Sort by:</span>
+                    <select name="sort_by" id="sort_by" onchange="updateSort()">
+                        <option value="customer_id" <?php echo $sort_by == 'customer_id' ? 'selected' : ''; ?>>ID</option>
+                        <option value="customer_name" <?php echo $sort_by == 'customer_name' ? 'selected' : ''; ?>>Name</option>
+                        <option value="customer_status" <?php echo $sort_by == 'customer_status' ? 'selected' : ''; ?>>Status</option>
+                    </select>
+                </div>
+                
+                <?php if (!empty($search) || $sort_by != 'customer_id'): ?>
+                    <a href="manage_customers.php" class="btn btn-secondary">Reset Filters</a>
+                <?php endif; ?>
+            </div>
             
             <?php if ($result && mysqli_num_rows($result) > 0): ?>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
+                        <th onclick="sortTable('customer_id')">
+                            ID 
+                            <span class="sort-indicator">
+                                <?php if ($sort_by == 'customer_id'): ?>↓<?php endif; ?>
+                            </span>
+                        </th>
+                        <th onclick="sortTable('customer_name')">
+                            Name
+                            <span class="sort-indicator">
+                                <?php if ($sort_by == 'customer_name'): ?>↓<?php endif; ?>
+                            </span>
+                        </th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Status</th>
+                        <th onclick="sortTable('customer_status')">
+                            Status
+                            <span class="sort-indicator">
+                                <?php if ($sort_by == 'customer_status'): ?>↓<?php endif; ?>
+                            </span>
+                        </th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -792,17 +652,14 @@ if (!$result) {
                 <div class="form-group">
                     <label for="editCustomerPhone">Phone Number</label>
                     <input type="tel" id="editCustomerPhone" name="customer_phone" placeholder="e.g., 0123456789" required>
-                    <div class="input-hint">10-15 digits only (numbers only)</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerEmail">Email Address</label>
                     <input type="email" id="editCustomerEmail" name="customer_email" placeholder="e.g., example@gmail.com" required>
-                    <div class="input-hint">Must be a valid email address</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerPassword">Password</label>
                     <input type="password" id="editCustomerPassword" name="customer_password" placeholder="Enter password" required>
-                    <div class="input-hint">Must meet all password requirements above</div>
                 </div>
                 <div class="form-group">
                     <label for="editCustomerStatus">Status</label>
@@ -843,24 +700,35 @@ if (!$result) {
             }
         }
 
-        // Real-time phone number formatting
-        document.addEventListener('DOMContentLoaded', function() {
-            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+        // Sort functionality
+        function updateSort() {
+            const sortBy = document.getElementById('sort_by').value;
+            const search = '<?php echo $search; ?>';
             
-            phoneInputs.forEach(input => {
-                input.addEventListener('input', function(e) {
-                    // Remove any non-digit characters
-                    let value = e.target.value.replace(/\D/g, '');
-                    
-                    // Limit to 15 digits
-                    if (value.length > 15) {
-                        value = value.substring(0, 15);
-                    }
-                    
-                    e.target.value = value;
-                });
-            });
-        });
+            let url = 'manage_customers.php?';
+            
+            if (search) {
+                url += 'search=' + encodeURIComponent(search) + '&';
+            }
+            
+            url += 'sort_by=' + sortBy;
+            
+            window.location.href = url;
+        }
+
+        function sortTable(column) {
+            const search = '<?php echo $search; ?>';
+            
+            let url = 'manage_customers.php?';
+            
+            if (search) {
+                url += 'search=' + encodeURIComponent(search) + '&';
+            }
+            
+            url += 'sort_by=' + column;
+            
+            window.location.href = url;
+        }
     </script>
 </body>
 </html>
