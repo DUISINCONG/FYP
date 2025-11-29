@@ -26,39 +26,62 @@ function validatePassword($password) {
     return true; // Password is valid
 }
 
+// Email validation function
+function validateEmail($email) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return "Invalid email format";
+    }
+    return true;
+}
+
 // Handle Add Admin
 if (isset($_POST['add_admin'])) {
     $admin_id = mysqli_real_escape_string($conn, $_POST['admin_id']);
     $admin_name = mysqli_real_escape_string($conn, $_POST['admin_name']);
+    $admin_email = mysqli_real_escape_string($conn, $_POST['admin_email']);
     $admin_password = mysqli_real_escape_string($conn, $_POST['admin_password']);
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
-    // Set status to active by default for new admins
+    // Auto set role to 'admin' and status to 'active'
+    $role = 'admin';
     $admin_status = 'active';
 
-    // Validate password
-    $passwordValidation = validatePassword($admin_password);
-    if ($passwordValidation !== true) {
-        $error_message = "Error: " . $passwordValidation;
+    // Validate email
+    $emailValidation = validateEmail($admin_email);
+    if ($emailValidation !== true) {
+        $error_message = "Error: " . $emailValidation;
     } else {
-        // Check if admin ID already exists
-        $check_sql = "SELECT * FROM admins WHERE admin_id='$admin_id'";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if($check_result && mysqli_num_rows($check_result) > 0) {
-            $error_message = "Error: Admin ID already exists!";
+        // Validate password
+        $passwordValidation = validatePassword($admin_password);
+        if ($passwordValidation !== true) {
+            $error_message = "Error: " . $passwordValidation;
         } else {
-            // Check if admin name already exists
-            $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name'";
-            $check_name_result = mysqli_query($conn, $check_name_sql);
+            // Check if admin ID already exists
+            $check_sql = "SELECT * FROM admins WHERE admin_id='$admin_id'";
+            $check_result = mysqli_query($conn, $check_sql);
             
-            if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
-                $error_message = "Error: Admin name already exists!";
+            if($check_result && mysqli_num_rows($check_result) > 0) {
+                $error_message = "Error: Admin ID already exists!";
             } else {
-                $sql = "INSERT INTO admins (admin_id, admin_name, admin_password, role, admin_status) VALUES ('$admin_id', '$admin_name', '$admin_password', '$role', '$admin_status')";
-                if(mysqli_query($conn, $sql)) {
-                    $success_message = "Admin added successfully!";
+                // Check if admin name already exists
+                $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name'";
+                $check_name_result = mysqli_query($conn, $check_name_sql);
+                
+                if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
+                    $error_message = "Error: Admin name already exists!";
                 } else {
-                    $error_message = "Error adding admin: " . mysqli_error($conn);
+                    // Check if admin email already exists
+                    $check_email_sql = "SELECT * FROM admins WHERE admin_email='$admin_email'";
+                    $check_email_result = mysqli_query($conn, $check_email_sql);
+                    
+                    if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                        $error_message = "Error: Admin email already exists!";
+                    } else {
+                        $sql = "INSERT INTO admins (admin_id, admin_name, admin_email, admin_password, role, admin_status) VALUES ('$admin_id', '$admin_name', '$admin_email', '$admin_password', '$role', '$admin_status')";
+                        if(mysqli_query($conn, $sql)) {
+                            $success_message = "Admin added successfully!";
+                        } else {
+                            $error_message = "Error adding admin: " . mysqli_error($conn);
+                        }
+                    }
                 }
             }
         }
@@ -70,59 +93,100 @@ if (isset($_POST['update_admin'])) {
     $id = mysqli_real_escape_string($conn, $_POST['admin_id']);
     $new_id = mysqli_real_escape_string($conn, $_POST['new_admin_id']);
     $admin_name = mysqli_real_escape_string($conn, $_POST['admin_name']);
+    $admin_email = mysqli_real_escape_string($conn, $_POST['admin_email']);
     $admin_password = mysqli_real_escape_string($conn, $_POST['admin_password']);
     $role = mysqli_real_escape_string($conn, $_POST['role']);
     $admin_status = mysqli_real_escape_string($conn, $_POST['admin_status']);
 
-    // Validate password
-    $passwordValidation = validatePassword($admin_password);
-    if ($passwordValidation !== true) {
-        $error_message = "Error: " . $passwordValidation;
+    // Validate email
+    $emailValidation = validateEmail($admin_email);
+    if ($emailValidation !== true) {
+        $error_message = "Error: " . $emailValidation;
     } else {
-        // Check if new admin ID already exists (if changed)
-        if ($id != $new_id) {
-            $check_sql = "SELECT * FROM admins WHERE admin_id='$new_id'";
-            $check_result = mysqli_query($conn, $check_sql);
-            
-            if($check_result && mysqli_num_rows($check_result) > 0) {
-                $error_message = "Error: Admin ID already exists!";
+        // Validate password
+        $passwordValidation = validatePassword($admin_password);
+        if ($passwordValidation !== true) {
+            $error_message = "Error: " . $passwordValidation;
+        } else {
+            // Check if new admin ID already exists (if changed)
+            if ($id != $new_id) {
+                $check_sql = "SELECT * FROM admins WHERE admin_id='$new_id'";
+                $check_result = mysqli_query($conn, $check_sql);
+                
+                if($check_result && mysqli_num_rows($check_result) > 0) {
+                    $error_message = "Error: Admin ID already exists!";
+                } else {
+                    // Check if admin name already exists (excluding current admin)
+                    $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
+                    $check_name_result = mysqli_query($conn, $check_name_sql);
+                    
+                    if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
+                        $error_message = "Error: Admin name already exists!";
+                    } else {
+                        // Check if admin email already exists (excluding current admin)
+                        $check_email_sql = "SELECT * FROM admins WHERE admin_email='$admin_email' AND admin_id != $id";
+                        $check_email_result = mysqli_query($conn, $check_email_sql);
+                        
+                        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                            $error_message = "Error: Admin email already exists!";
+                        } else {
+                            $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_email='$admin_email', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
+                            if(mysqli_query($conn, $sql)) {
+                                $success_message = "Admin updated successfully!";
+                            } else {
+                                $error_message = "Error updating admin: " . mysqli_error($conn);
+                            }
+                        }
+                    }
+                }
             } else {
-                // Check if admin name already exists (excluding current admin)
+                // ID didn't change, check admin name, email and update other fields
                 $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
                 $check_name_result = mysqli_query($conn, $check_name_sql);
                 
                 if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
                     $error_message = "Error: Admin name already exists!";
                 } else {
-                    $sql = "UPDATE admins SET admin_id='$new_id', admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
-                    if(mysqli_query($conn, $sql)) {
-                        $success_message = "Admin updated successfully!";
+                    // Check if admin email already exists (excluding current admin)
+                    $check_email_sql = "SELECT * FROM admins WHERE admin_email='$admin_email' AND admin_id != $id";
+                    $check_email_result = mysqli_query($conn, $check_email_sql);
+                    
+                    if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+                        $error_message = "Error: Admin email already exists!";
                     } else {
-                        $error_message = "Error updating admin: " . mysqli_error($conn);
+                        $sql = "UPDATE admins SET admin_name='$admin_name', admin_email='$admin_email', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
+                        if(mysqli_query($conn, $sql)) {
+                            $success_message = "Admin updated successfully!";
+                        } else {
+                            $error_message = "Error updating admin: " . mysqli_error($conn);
+                        }
                     }
-                }
-            }
-        } else {
-            // ID didn't change, check admin name and update other fields
-            $check_name_sql = "SELECT * FROM admins WHERE admin_name='$admin_name' AND admin_id != $id";
-            $check_name_result = mysqli_query($conn, $check_name_sql);
-            
-            if($check_name_result && mysqli_num_rows($check_name_result) > 0) {
-                $error_message = "Error: Admin name already exists!";
-            } else {
-                $sql = "UPDATE admins SET admin_name='$admin_name', admin_password='$admin_password', role='$role', admin_status='$admin_status' WHERE admin_id=$id";
-                if(mysqli_query($conn, $sql)) {
-                    $success_message = "Admin updated successfully!";
-                } else {
-                    $error_message = "Error updating admin: " . mysqli_error($conn);
                 }
             }
         }
     }
 }
 
-// Fetch admins with error handling
-$sql = "SELECT * FROM admins ORDER BY admin_id";
+// Handle Search and Sorting
+$search_query = "";
+$sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'admin_id';
+$sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'ASC';
+
+if (isset($_GET['search'])) {
+    $search_query = mysqli_real_escape_string($conn, $_GET['search']);
+    $sort_by = mysqli_real_escape_string($conn, $_GET['sort_by']);
+    
+    $sql = "SELECT * FROM admins WHERE 
+            admin_id LIKE '%$search_query%' OR 
+            admin_name LIKE '%$search_query%' OR 
+            admin_email LIKE '%$search_query%' OR 
+            role LIKE '%$search_query%' OR 
+            admin_status LIKE '%$search_query%'
+            ORDER BY $sort_by $sort_order";
+} else {
+    $sql = "SELECT * FROM admins ORDER BY $sort_by $sort_order";
+}
+
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
@@ -254,6 +318,7 @@ if (!$result) {
         input[type="text"],
         input[type="password"],
         input[type="number"],
+        input[type="email"],
         select {
             width: 100%;
             padding: 12px 15px;
@@ -334,6 +399,30 @@ if (!$result) {
             background-color: var(--light);
             font-weight: 600;
             color: var(--secondary);
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        
+        th:hover {
+            background-color: #dfe6e9;
+        }
+        
+        .sortable:after {
+            content: '↕';
+            margin-left: 5px;
+            color: var(--primary);
+            font-size: 12px;
+        }
+        
+        .sort-asc:after {
+            content: '↑';
+            color: var(--primary);
+        }
+        
+        .sort-desc:after {
+            content: '↓';
+            color: var(--primary);
         }
         
         tr:hover {
@@ -347,6 +436,8 @@ if (!$result) {
         .actions {
             display: flex;
             gap: 10px;
+            justify-content: center;
+            align-items: center;
         }
         
         .action-btn {
@@ -487,6 +578,86 @@ if (!$result) {
             margin-bottom: 5px;
         }
         
+        .search-sort-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .search-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .search-button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .sort-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .sort-select {
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+        }
+        
+        .sort-order-btn {
+            background-color: var(--light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 12px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .sort-order-btn:hover {
+            background-color: #dde4e6;
+        }
+        
+        /* Center the actions column */
+        td:last-child {
+            text-align: center;
+        }
+        
+        /* Ensure the actions column header is also centered */
+        th:last-child {
+            text-align: center;
+        }
+        
+        .email-cell {
+            word-break: break-all;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -515,6 +686,14 @@ if (!$result) {
             
             .actions {
                 flex-direction: column;
+            }
+            
+            .search-sort-container {
+                flex-direction: column;
+            }
+            
+            .search-container {
+                min-width: 100%;
             }
         }
     </style>
@@ -574,16 +753,12 @@ if (!$result) {
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="admin_password">Password</label>
-                        <input type="password" id="admin_password" name="admin_password" placeholder="Enter password" required>
+                        <label for="admin_email">Admin Email</label>
+                        <input type="email" id="admin_email" name="admin_email" placeholder="Enter admin email" required>
                     </div>
                     <div class="form-group">
-                        <label for="role">Role</label>
-                        <select id="role" name="role" required>
-                            <option value="">Select Role</option>
-                            <option value="admin">Admin</option>
-                            <option value="superadmin">Super Admin</option>
-                        </select>
+                        <label for="admin_password">Password</label>
+                        <input type="password" id="admin_password" name="admin_password" placeholder="Enter password" required>
                     </div>
                 </div>
                 
@@ -597,15 +772,39 @@ if (!$result) {
         
         <div class="card">
             <h2>Admin List</h2>
+            
+            <!-- Search and Sort Form -->
+            <form method="GET" action="">
+                <div class="search-sort-container">
+                    <div class="search-container">
+                        <input type="text" class="search-input" name="search" placeholder="Search admins by ID, name, email, role, or status..." value="<?php echo htmlspecialchars($search_query); ?>">
+                        <button type="submit" class="search-button">Search</button>
+                    </div>
+                    <div class="sort-container">
+                        <select name="sort_by" class="sort-select" onchange="this.form.submit()">
+                            <option value="admin_id" <?php echo $sort_by == 'admin_id' ? 'selected' : ''; ?>>Sort by ID</option>
+                            <option value="admin_name" <?php echo $sort_by == 'admin_name' ? 'selected' : ''; ?>>Name</option>
+                            <option value="admin_email" <?php echo $sort_by == 'admin_email' ? 'selected' : ''; ?>>Email</option>
+                            <option value="role" <?php echo $sort_by == 'role' ? 'selected' : ''; ?>>Role</option>
+                            <option value="admin_status" <?php echo $sort_by == 'admin_status' ? 'selected' : ''; ?>>Status</option>
+                        </select>
+                        <button type="submit" name="sort_order" value="<?php echo $sort_order == 'ASC' ? 'DESC' : 'ASC'; ?>" class="sort-order-btn">
+                            <?php echo $sort_order == 'ASC' ? '↑ Asc' : '↓ Desc'; ?>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
             <?php if ($result && mysqli_num_rows($result) > 0): ?>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Admin Name</th>
+                        <th class="sortable <?php echo $sort_by == 'admin_id' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('admin_id')">ID</th>
+                        <th class="sortable <?php echo $sort_by == 'admin_name' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('admin_name')">Admin Name</th>
+                        <th class="sortable <?php echo $sort_by == 'admin_email' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('admin_email')">Email</th>
                         <th>Password</th>
-                        <th>Role</th>
-                        <th>Status</th>
+                        <th class="sortable <?php echo $sort_by == 'role' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('role')">Role</th>
+                        <th class="sortable <?php echo $sort_by == 'admin_status' ? ($sort_order == 'ASC' ? 'sort-asc' : 'sort-desc') : ''; ?>" onclick="sortTable('admin_status')">Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -613,10 +812,12 @@ if (!$result) {
                     <?php while($row = mysqli_fetch_assoc($result)) { 
                         $isSuperadmin = $row['admin_id'] == 1;
                         $status = !empty($row['admin_status']) ? $row['admin_status'] : 'active';
+                        $email = !empty($row['admin_email']) ? $row['admin_email'] : 'Not set';
                     ?>
                     <tr class="<?php echo $isSuperadmin ? 'superadmin-row' : ''; ?>">
                         <td><?php echo $row['admin_id']; ?></td>
                         <td><?php echo $row['admin_name']; ?></td>
+                        <td class="email-cell"><?php echo $email; ?></td>
                         <td>••••••••</td>
                         <td>
                             <span class="role-badge role-<?php echo $row['role']; ?>">
@@ -628,14 +829,17 @@ if (!$result) {
                                 <?php echo ucfirst($status); ?>
                             </span>
                         </td>
-                        <td class="actions">
-                            <button class="action-btn edit-btn" onclick="openEditModal(
-                                '<?php echo $row['admin_id']; ?>',
-                                '<?php echo addslashes($row['admin_name']); ?>',
-                                '<?php echo addslashes($row['admin_password']); ?>',
-                                '<?php echo addslashes($row['role']); ?>',
-                                '<?php echo addslashes($status); ?>'
-                            )" <?php echo $isSuperadmin ? 'disabled' : ''; ?>>Edit</button>
+                        <td>
+                            <div class="actions">
+                                <button class="action-btn edit-btn" onclick="openEditModal(
+                                    '<?php echo $row['admin_id']; ?>',
+                                    '<?php echo addslashes($row['admin_name']); ?>',
+                                    '<?php echo addslashes($row['admin_email']); ?>',
+                                    '<?php echo addslashes($row['admin_password']); ?>',
+                                    '<?php echo addslashes($row['role']); ?>',
+                                    '<?php echo addslashes($status); ?>'
+                                )" <?php echo $isSuperadmin ? 'disabled' : ''; ?>>Edit</button>
+                            </div>
                         </td>
                     </tr>
                     <?php } ?>
@@ -678,6 +882,10 @@ if (!$result) {
                     <input type="text" id="editAdminName" name="admin_name" placeholder="Enter admin name" required>
                 </div>
                 <div class="form-group">
+                    <label for="editAdminEmail">Admin Email</label>
+                    <input type="email" id="editAdminEmail" name="admin_email" placeholder="Enter admin email" required>
+                </div>
+                <div class="form-group">
                     <label for="editAdminPassword">Password</label>
                     <input type="password" id="editAdminPassword" name="admin_password" placeholder="Enter password" required>
                 </div>
@@ -706,10 +914,11 @@ if (!$result) {
     </div>
 
     <script>
-        function openEditModal(id, admin_name, admin_password, role, status) {
+        function openEditModal(id, admin_name, admin_email, admin_password, role, status) {
             document.getElementById('editId').value = id;
             document.getElementById('editAdminId').value = id;
             document.getElementById('editAdminName').value = admin_name;
+            document.getElementById('editAdminEmail').value = admin_email;
             document.getElementById('editAdminPassword').value = admin_password;
             document.getElementById('editRole').value = role;
             document.getElementById('editStatus').value = status;
@@ -718,6 +927,18 @@ if (!$result) {
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
+        }
+        
+        function sortTable(column) {
+            const currentSortBy = '<?php echo $sort_by; ?>';
+            const currentSortOrder = '<?php echo $sort_order; ?>';
+            
+            let newSortOrder = 'ASC';
+            if (currentSortBy === column) {
+                newSortOrder = currentSortOrder === 'ASC' ? 'DESC' : 'ASC';
+            }
+            
+            window.location.href = '?search=<?php echo urlencode($search_query); ?>&sort_by=' + column + '&sort_order=' + newSortOrder;
         }
 
         // Close modal when clicking outside
