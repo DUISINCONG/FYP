@@ -19,10 +19,10 @@ if(isset($_POST['loginbutton'])) {
     $cemail = mysqli_real_escape_string($conn, $_POST['cemail']);
     $cpassword = $_POST['cpassword'];
 
-    $query = "SELECT * FROM customers WHERE email = '$cemail'";
+    $query = "SELECT * FROM customers WHERE customer_email = '$cemail'";
     $result = mysqli_query($conn, $query);
 
-    $query1 = "SELECT * FROM customers WHERE password = '$cpassword'";   
+    $query1 = "SELECT * FROM customers WHERE customer_password = '$cpassword'";   
     $result1 = mysqli_query($conn, $query1);
 
     if(mysqli_num_rows($result) == true) {
@@ -32,7 +32,7 @@ if(isset($_POST['loginbutton'])) {
             $customer = mysqli_fetch_assoc($result1);
             $_SESSION['id'] = $customer['customer_id'];
 
-            header("Location: test.php");
+            header("Location: menuPage.php");
             exit();
 
         } else {
