@@ -1,0 +1,112 @@
+:root {
+    --secondary: #1a1a1a;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --text: #555;
+}
+
+header {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.navbar1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    height: 5px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: red;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+        
+.logo i {
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+        
+.nav-links li {
+    margin-left: 30px;
+    position: relative;
+}
+
+.nav-links button {
+    margin-left: 30px;
+    position: relative;
+}
+        
+.nav-links a {
+    text-decoration: none;
+    color: var(--secondary);
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.3s;
+    padding: 5px 0;
+}
+        
+.nav-links a:hover {
+    color: red;
+}
+        
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: red;
+     transition: width 0.3s;
+}
+
+.nav-links button:hover {
+    color: red;
+}
+        
+.nav-links button::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: red;
+     transition: width 0.3s;
+}
+        
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
