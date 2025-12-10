@@ -1,10 +1,8 @@
 <?php
-include 'db_connect.php'; // make sure this path is correct
-
-// Remove debugging line
-// var_dump($_POST);
+include 'db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
@@ -16,22 +14,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    // Hash the password before saving
+    // Hash password
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $sql = "INSERT INTO customers (name, email, phone, password) 
-            VALUES ('$name', '$email', '$phone', '$hashedPassword')";
+    // FIXED SQL: matching your table column names
+    $sql = "INSERT INTO customers 
+            (customer_name, customer_email, customer_phone, customer_password, customer_status)
+            VALUES 
+            ('$name', '$email', '$phone', '$hashedPassword', 'active')";
 
     if (mysqli_query($conn, $sql)) {
         echo "<h3 style='color:green;'>Registration successful!</h3>";
     } else {
-        if (mysqli_errno($conn) == 1062) {
-            echo "<h3 style='color:red;'>Email already exists. Please use another email.</h3>";
-        } else {
-            echo "<h3 style='color:red;'>Error: " . mysqli_error($conn) . "</h3>";
-        }
+        echo "<h3 style='color:red;'>Error: " . mysqli_error($conn) . "</h3>";
     }
 }
 
 mysqli_close($conn);
 ?>
+
+
