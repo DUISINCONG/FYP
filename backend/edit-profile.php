@@ -2,39 +2,53 @@
 session_start();
 include "db_connect.php";
 
-// Assuming user is logged in
-$user_id = $_SESSION['user_id'] ?? 1;
+// Get logged in user's ID
+$user_id = $_SESSION['customer_id'] ?? 1;
 
 $success = "";
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $confirmPassword = mysqli_real_escape_string($conn, $_POST['confirmPassword']);
 
-    // Server-side validation
     if (empty($name) || empty($email) || empty($phone) || empty($password)) {
         $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Invalid email format.";
-    } elseif (!is_numeric($phone) || strlen($phone) != 10) {
-        $error = "Phone must be 10 digits.";
+    } elseif (!is_numeric($phone) || strlen($phone) < 10) {
+        $error = "Phone must be at least 10 digits.";
     } elseif (strlen($password) < 6) {
         $error = "Password must be at least 6 characters.";
     } elseif ($password !== $confirmPassword) {
         $error = "Passwords do not match.";
     } else {
+
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "UPDATE users SET fullname='$name', email='$email', phone='$phone', password='$hashed_password' WHERE id='$user_id'";
+
+        // CORRECT TABLE + COLUMN NAMES
+        $sql = "UPDATE customers 
+                SET customer_name='$name',
+                    customer_email='$email',
+                    customer_phone='$phone',
+                    customer_password='$hashed_password'
+                WHERE customer_id='$user_id'";
+
         if (mysqli_query($conn, $sql)) {
-            $success = "Information Updated Successfully!!";
+            echo "success";
+            exit;
         } else {
-            $error = "Database error: " . mysqli_error($conn);
+            echo "Database error: " . mysqli_error($conn);
+            exit;
         }
     }
+
+    echo $error;
+    exit;
 }
 ?>
 
@@ -192,30 +206,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
      Information Updated Successfully!!
   </div>
 
-  <form id="editForm" onsubmit="return false;">
+  <form id="editForm" method="POST">
 
-    <label>Full Name</label>
-    <input type="text" id="name">
-    <div id="nameError" class="error-box">Name cannot be empty.</div>
+<label>Full Name</label>
+<input type="text" id="name" name="name">
+<div id="nameError" class="error-box"></div>
 
-    <label>Email</label>
-    <input type="email" id="email">
-    <div id="emailError" class="error-box">Invalid email address.</div>
+<label>Email</label>
+<input type="email" id="email" name="email">
+<div id="emailError" class="error-box"></div>
 
-    <label>Phone Number</label>
-    <input type="text" id="phone">
-    <div id="phoneError" class="error-box">Phone must be 10 digits.</div>
+<label>Phone Number</label>
+<input type="text" id="phone" name="phone">
+<div id="phoneError" class="error-box"></div>
 
-    <label>Password</label>
-    <input type="password" id="password">
-    <div id="passwordError" class="error-box">Min 6 characters.</div>
+<label>Password</label>
+<input type="password" id="password" name="password">
+<div id="passwordError" class="error-box"></div>
 
-    <label>Confirm Password</label>
-    <input type="password" id="confirmPassword">
-    <div id="confirmError" class="error-box">Passwords do not match.</div>
+<label>Confirm Password</label>
+<input type="password" id="confirmPassword" name="confirmPassword">
+<div id="confirmError" class="error-box"></div>
 
-    <button type="submit">Update Profile</button>
-  </form>
+<button type="submit">Update Profile</button>
+</form>
 
   <a href="home.html" class="home-btn">⟵ Back to Home</a>
 
@@ -225,56 +239,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
 <script>
-/* EXACT SAME PARTICLES SETTINGS FROM REGISTER.HTML */
-particlesJS("particles-js", {
-  particles: {
-    number: { value: 90 },
-    size: { value: 3 },
-    move: { speed: 2 },
-    opacity: { value: 0.3 },
-    color: { value: "#ffffff" },
-    line_linked: {
-      enable: true,
-      color: "#ffffff",
-      opacity: 0.2
+document.getElementById("editForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    let valid = true;
+
+    nameError.style.display = name.value.trim() === "" ? "block" : "none";
+    emailError.style.display = (!email.value.includes("@") || !email.value.includes(".")) ? "block" : "none";
+    phoneError.style.display = (phone.value.length < 10 || isNaN(phone.value)) ? "block" : "none";
+    passwordError.style.display = (password.value.length < 6) ? "block" : "none";
+    confirmError.style.display = (password.value !== confirmPassword.value) ? "block" : "none";
+
+    if (nameError.style.display === "block" || 
+        emailError.style.display === "block" ||
+        phoneError.style.display === "block" ||
+        passwordError.style.display === "block" ||
+        confirmError.style.display === "block") {
+        return;
     }
-  }
-});
 
-/* SUCCESS MESSAGE + VALIDATION */
-document.getElementById("editForm").addEventListener("submit", function () {
+    let formData = new FormData(this);
 
-  let valid = true;
+    fetch("edit-profile.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+        if (data.trim() === "success") {
+            let box = document.getElementById("successMessage");
+            box.style.display = "block";
+            box.style.opacity = "1";
 
-  if (name.value.trim() === "") { nameError.style.display = "block"; valid = false; }
-  else nameError.style.display = "none";
-
-  if (!email.value.includes("@") || !email.value.includes(".")) {
-    emailError.style.display = "block"; valid = false;
-  } else emailError.style.display = "none";
-
-  if (phone.value.length !== 10 || isNaN(phone.value)) {
-    phoneError.style.display = "block"; valid = false;
-  } else phoneError.style.display = "none";
-
-  if (password.value.length < 6) {
-    passwordError.style.display = "block"; valid = false;
-  } else passwordError.style.display = "none";
-
-  if (password.value !== confirmPassword.value) {
-    confirmError.style.display = "block"; valid = false;
-  } else confirmError.style.display = "none";
-
-  if (valid) {
-    let box = document.getElementById("successMessage");
-    box.style.display = "block";
-    setTimeout(() => { box.style.opacity = "1"; }, 50);
-
-    setTimeout(() => {
-      box.style.opacity = "0";
-      setTimeout(() => { box.style.display = "none"; }, 500);
-    }, 4000);
-  }
+            setTimeout(() => {
+                box.style.opacity = "0";
+                setTimeout(() => { box.style.display = "none"; }, 500);
+            }, 4000);
+        } else {
+            alert("Error: " + data);
+        }
+    });
 });
 </script>
 
