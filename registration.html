@@ -285,48 +285,21 @@
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   
   <script>
-    // Initialize particle background
-    document.addEventListener("DOMContentLoaded", () => {
-      particlesJS("particles-js", {
+document.addEventListener("DOMContentLoaded", () => {
+    particlesJS("particles-js", {
         particles: {
-          number: { value: 80, density: { enable: true, value_area: 800 } },
-          color: { value: "#ffffff" },
-          shape: { type: "circle" },
-          opacity: { value: 0.3, random: true },
-          size: { value: 3, random: true },
-          line_linked: {
-            enable: true,
-            distance: 150,
-            color: "#ffffff",
-            opacity: 0.2,
-            width: 1
-          },
-          move: {
-            enable: true,
-            speed: 2,
-            direction: "none",
-            random: true,
-            straight: false,
-            out_mode: "out",
-            bounce: false
-          }
-        },
-        interactivity: {
-          detect_on: "canvas",
-          events: {
-            onhover: { enable: true, mode: "repulse" },
-            onclick: { enable: true, mode: "push" },
-            resize: true
-          }
-        },
-        retina_detect: true
-      });
+            number: { value: 80, density: { enable: true, value_area: 800 } },
+            color: { value: "#ffffff" },
+            opacity: { value: 0.3, random: true },
+            size: { value: 3, random: true }
+        }
+    });
 
-      const registerForm = document.getElementById("registerForm");
-      const successBox = document.getElementById("successBox");
+    const registerForm = document.getElementById("registerForm");
+    const successBox = document.getElementById("successBox");
 
-      registerForm.addEventListener("submit", (e) => {
-        e.preventDefault();
+    registerForm.addEventListener("submit", (e) => {
+        e.preventDefault(); // stop default page reload
 
         let valid = true;
         const name = document.getElementById("name");
@@ -335,56 +308,56 @@
         const password = document.getElementById("password");
         const confirmPassword = document.getElementById("confirmPassword");
 
-        registerForm.querySelectorAll(".error-message").forEach((msg) => (msg.textContent = ""));
+        registerForm.querySelectorAll(".error-message")
+            .forEach((msg) => (msg.textContent = ""));
         successBox.style.display = "none";
 
+        // Validation
         if (name.value.trim() === "") { setError(name, "Please enter your full name."); valid = false; }
         if (email.value.trim() === "") { setError(email, "Please enter your email address."); valid = false; }
         if (phone.value.trim() === "") { setError(phone, "Please enter your phone number."); valid = false; }
         if (password.value.trim() === "") { setError(password, "Please enter your password."); valid = false; }
-        if (confirmPassword.value !== password.value) { setError(confirmPassword, "Passwords do not match."); valid = false; }
+        if (password.value.length < 6) { setError(password, "Minimum 6 characters."); valid = false; }
+        if (confirmPassword.value !== password.value) { 
+            setError(confirmPassword, "Passwords do not match."); 
+            valid = false;
+        }
 
-        if (valid) {
-          // Simulated form submission successful
-          setTimeout(() => {
-            successBox.style.display = "block";
-            registerForm.reset();
-            
-            // The message "Hidden Successfully" will be hidden in 3 seconds.
-            setTimeout(() => {
-              successBox.style.display = "none";
-            }, 3000);
-          }, 500);
-          
-          // In actual code, the following fetch request should be used.
-          /*
-          const formData = new FormData(registerForm);
-          fetch(registerForm.action, {
+        if (!valid) return;
+
+        // REAL FORM SUBMISSION USING FETCH
+        const formData = new FormData(registerForm);
+
+        fetch(registerForm.action, {
             method: "POST",
             body: formData
-          })
-            .then((response) => response.text())
-            .then((data) => {
-              if (data.includes("Registration successful")) {
+        })
+        .then((response) => response.text())
+        .then((data) => {
+            if (data.includes("Registration successful")) {
                 successBox.style.display = "block";
                 registerForm.reset();
-              } else {
-                alert("Something went wrong: " + data);
-              }
-            })
-            .catch((err) => alert("Error: " + err));
-          */
-        }
-      });
 
-      function setError(input, message) {
+                setTimeout(() => {
+                    successBox.style.display = "none";
+                }, 3000);
+            } else {
+                alert("Error: " + data);
+            }
+        })
+        .catch((err) => alert("Submission error: " + err));
+    });
+
+    function setError(input, message) {
         const errorMsg = input.parentElement.querySelector(".error-message");
         errorMsg.textContent = message;
-      }
-    });
-  </script>
+    }
+});
+</script>
 </body>
 </html>
 </body>
 </html>
+
+
 
