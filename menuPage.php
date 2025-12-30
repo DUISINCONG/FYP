@@ -1,4 +1,7 @@
-<?php include("db_connect.php"); ?>
+<?php 
+    include("db_connect.php"); 
+    session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +28,10 @@
                     <li><a href="index.html">HOME</a></li>
                     <li><a href="#">ABOUT</a></li>
                     <li><a href="#">SERVICE</a></li>
-                    <li><a href="menuPage.php">MENU</a></li>
+                    <li><a href="menuPage.php">Menu</a></li>
                     <li><a href="#">PAGES</a></li>
                     <li><a href="#">CONTACT</a></li>
-                    <li><a href="#" class="btn">BOOK A TABLE</a></li>
+                    <li><a href="AddToCart.php" class="btn">Add To Cart</a></li>
                 </ul><br>
             </nav>
         </div>
@@ -231,7 +234,7 @@
                 <p>&copy; 2023 JC Restaurant. All Rights Reserved.</p>
             </div>
         </div>
-    </footer>
-    -->
+    </footer>-->
+    
 </body>
 </html>
