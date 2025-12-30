@@ -106,10 +106,10 @@ $data = mysqli_fetch_assoc($result);
                     <li><a href="index.html">HOME</a></li>
                     <li><a href="#">ABOUT</a></li>
                     <li><a href="#">SERVICE</a></li>
-                    <li><a href="menuPage.php">MENU</a></li>
+                    <li><a href="menuPage.php">Menu</a></li>
                     <li><a href="#">PAGES</a></li>
                     <li><a href="#">CONTACT</a></li>
-                    <li><a href="#" class="btn">BOOK A TABLE</a></li>
+                    <li><a href="AddToCart.php" class="btn">Add To Cart</a></li>
                 </ul><br>
             </nav>
         </div>
@@ -133,6 +133,8 @@ $data = mysqli_fetch_assoc($result);
                 <button type="button" onclick="add()">+</button>
 
                 <input type="hidden" name="product_id" value="<?php echo $data['product_id']; ?>">
+                <input type="hidden" name="product_name" value="<?php echo $data['product_name']; ?>">
+                <input type="hidden" name="product_image" value="<?php echo $data['product_image']; ?>">
                 <input type="hidden" name="status" value="active">
                 <input type="hidden" name="date" value="<?php echo date("Y-m-d h:i:sa") ?>">
 
@@ -150,6 +152,8 @@ $data = mysqli_fetch_assoc($result);
 
         $customer_id = $_SESSION['id'];
         $product_id = $_POST["product_id"];
+        $product_name = $_POST["product_name"];
+        $product_image = $_POST["product_image"];
         $status = $_POST["status"];
         $date = $_POST["date"];
         $qty = $_POST["quantity"];
@@ -157,7 +161,7 @@ $data = mysqli_fetch_assoc($result);
         $pprice = $data['product_price'];
         $totalamount = $pprice * $qty;
 
-        mysqli_query($conn,"insert into orders (customer_id, product_id, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$status', '$date', '$qty', '$totalamount')");
+        mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$qty', '$totalamount')");
 
         ?>
             
@@ -187,6 +191,7 @@ $data = mysqli_fetch_assoc($result);
             input.value = input.value.replace(/[^0-9]/g, '');
             if (input.value === '') input.value = 1;
             if (input.value === '0') input.value = 1;
+            if (input.value === '21') input.value = 20;
             updateTotal();
         }
 
@@ -200,7 +205,7 @@ $data = mysqli_fetch_assoc($result);
         function add() {
             let qty = document.getElementById("qty");
             let value = parseInt(qty.value);
-            qty.value = value + 1;
+            if (value < 20) qty.value = value + 1;
             updateTotal();
         }
 
