@@ -149,6 +149,33 @@
             color: var(--secondary);
         }
         
+        /* Cart button in navbar */
+        .cart-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--button-primary);
+            color: var(--secondary);
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--button-primary);
+            letter-spacing: 1px;
+        }
+        
+        .cart-btn:hover {
+            background-color: var(--button-hover);
+            border-color: var(--button-hover);
+            color: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(201, 169, 110, 0.3);
+        }
+        
+        .cart-btn i {
+            margin-right: 8px;
+        }
+        
         /* Hero Section */
         .hero {
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
@@ -574,7 +601,7 @@
                     <li><a href="#">MENU</a></li>
                     <li><a href="#">PAGES</a></li>
                     <li><a href="#">CONTACT</a></li>
-                    <li><a href="#" class="btn">BOOK A TABLE</a></li>
+                    <li><a href="#" class="cart-btn"><i class="fa-solid fa-cart-shopping"></i>My Cart</a></li>
                 </ul>
             </nav>
         </div>
@@ -587,7 +614,6 @@
                 <h1>Enjoy Our Delicious Meal</h1>
                 <p>Tempor erat elit rebum at clita. Diam dolor diam ipsum sit. Aliqu diam amet diam et eos. Clita erat ipsum et lorem et sit, sed stet lorem sit clita duo justo magna dolore erat amet.</p>
                 <div class="hero-btns">
-                    <a href="#" class="btn">BOOK A TABLE</a>
                     <a href="#" class="btn btn-outline">VIEW MENU</a>
                 </div>
             </div>
@@ -776,4 +802,3 @@
     </script>
 </body>
 </html>
-
