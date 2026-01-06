@@ -1,56 +1,27 @@
-body {
-  background-color: black;
+h2 {
+    font-size: 40px;
+    margin-top: 120px;
+    text-align: center;
+    color: orange;
+    font-weight: 800;
 }
 
 p {
-
-  color:white;
-
-}
-
-h2 {
-
-  color:white;
-  font-size: 40px;
-
+    text-align: center;
+    margin: 25px 0;
+    color: #999;
 }
 
 label {
 
-  color:white;
   font-size: 30px;
 
 }
 
-img{
 
-  float: left;
-
-}
-
-.A{
-
-  margin: 10% 20% 0px 20%;
-
-}
-
-.B{
-
-  padding: 50px;
-
-}
-
-.B1{
-
-  padding: 0px 50px 50px 50px;
-
-}
-
-.B1 p{
-
-  text-align: center;
-  color: gray;
-
+.B1 p {
+    text-align: center;
+    color: #555;
 }
 
 .B1 h2{
@@ -69,8 +40,9 @@ img{
 .D label{
 
   margin-right: 100px;
-  size: 32px;
   font-family: "Inter";
+  font-size: 24px;
+  font-weight: bold;
 }
 
 
@@ -98,38 +70,179 @@ img{
 
 }
 
-form input[type="text"]{
-
-  width: 400px;
-  height: 40px; 
-  background-color: #F7F7F7;
-
+form input[type="text"],
+form input[type="password"] {
+    width: 400px;
+    height: 44px;
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 16px;
+    transition: 0.3s;
 }
 
-form input[type="password"]{
-
-  width: 400px;
-  height: 40px; 
-  background-color: #F7F7F7;
-
+form input[type="text"]:focus,
+form input[type="password"]:focus {
+    border-color: orange;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255,165,0,0.2);
 }
 
-form input[type="submit"]{
-
-  width: 400px;
-  height: 40px; 
-  border-radius: 36px;
-  font-size: 24px;
-  font-family: "Inter";
-
+form input[type="submit"] {
+    width: 400px;
+    height: 44px;
+    border-radius: 36px;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: "Inter";
+    background: orange;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-button{
+form input[type="submit"]:hover {
+    background: #e68a00;
+    transform: translateY(-2px);
+}
 
-  width: 400px;
-  height: 40px; 
-  border-radius: 36px;
-  font-size: 24px;
-  font-family: "Inter";
+button {
+    width: 400px;
+    height: 44px;
+    border-radius: 36px;
+    font-size: 18px;
+    font-family: "Inter";
+    font-weight: bold;
+    background: white;
+    color: orange;
+    border: 2px solid orange;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
+button:hover {
+    background: orange;
+    color: white;
+}
+
+:root {
+    --secondary: #1a1a1a;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --text: #555;
+}
+
+header {
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.navbar1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    height: 5px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: orange;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+        
+.logo i {
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+        
+.nav-links li {
+    margin-left: 30px;
+    position: relative;
+}
+
+.nav-links button {
+    margin-left: 30px;
+    position: relative;
+}
+        
+.nav-links a {
+    text-decoration: none;
+    color: var(--secondary);
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.3s;
+    padding: 5px 0;
+}
+        
+.nav-links a:hover {
+    color: orange;
+}
+        
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: orange;
+     transition: width 0.3s;
+}
+
+.nav-links button:hover {
+    color: orange;
+}
+        
+.nav-links button::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: orange;
+     transition: width 0.3s;
+}
+        
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 200px;
+  height: 200px;
 }
