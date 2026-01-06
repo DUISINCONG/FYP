@@ -77,7 +77,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="AddToCartCss.css"/>
+    <link rel="stylesheet" href="AddToCart.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add to cart</title>
 </head>
@@ -101,7 +101,7 @@
                 </ul><br>
             </nav>
         </div>
-        <hr style="height:2px; background-color:red; text-align: center; width: 1200px;">
+        <hr style="height:2px; background-color:orange; text-align: center; width: 1200px; border-color: orange;">
     </header>
 
     <div class="A">
@@ -112,11 +112,14 @@
                             
         <?php
 
-        $customer_id = $_SESSION['id'];
+        $customerid = $_SESSION['id'];
         $ttotal = 0;
+        $count = 0;
 
-        $result = mysqli_query($conn, "select * from orders where customer_id = '$customer_id'");
+        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
         while($row = mysqli_fetch_assoc($result)){
+        
+        $count++;
 
         ?>
         <div class="B">	
@@ -153,7 +156,7 @@
                 </div>
 
                 <div class="cart-remove">
-                    <form method="POST" action="RemoveCart.php" onsubmit="return confirmDelete();">
+                    <form method="POST" action="RemoveCart.php">
                         <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
                         <button type="submit" class="remove-btn">✕</button>
                     </form>
@@ -168,7 +171,7 @@
 
         <?php
 
-        $result = mysqli_query($conn, "select * from orders where customer_id = '$customer_id'");
+        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
         while($row = mysqli_fetch_assoc($result)){
 
         ?>
@@ -183,6 +186,19 @@
             ?>
 
         </div>
+
+        <?php
+        if($count === 0){
+            ?><h1 style="text-align: center;">Your cart is empty</h1>
+            <div style="text-align: center;">
+                <img src="cartempty2.png"><br>
+                <a href="menuPage.php">
+                    <button style="font-size: 18px; color: white; height: 60px; width: 200px; border-radius: 36px; background-color: orange; border-color: orange;">Order Now !</button>
+                </a>
+            </div>
+        <?php
+        }else{
+        ?>
 
         <div class="cart-item">
 
@@ -202,17 +218,13 @@
 
         </div>
 
-        <button style="font-size: 18px; color: white; margin-left: 900px; height: 60px; width: 200px; border-radius: 36px; background-color: red; border-color: red;">Make a Payment</button>
+        <button style="font-size: 18px; color: white; margin-left: 900px; height: 60px; width: 200px; border-radius: 36px; background-color: orange; border-color: orange;">Make a Payment</button>
+
+        <?php
+        }
+        ?>
         
     </div>
-
-    
-
-    <script>
-        function confirmDelete() {
-            return confirm("Are you sure you want to remove this item from your cart?");
-        }
-    </script>
     
 </body>
 </html>
