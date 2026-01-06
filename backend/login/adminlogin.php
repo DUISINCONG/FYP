@@ -67,28 +67,44 @@ if (isset($_POST['request_otp'])) {
     if ($result && mysqli_num_rows($result) > 0) {
         $admin = mysqli_fetch_assoc($result);
         
-        $otp = sprintf("%06d", mt_rand(1, 999999));
-        $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-        
-        $update_sql = "UPDATE admins SET 
-                      otp_code = '$otp', 
-                      otp_expiry = '$otp_expiry'
-                      WHERE admin_email = '$email'";
-        
-        if (mysqli_query($conn, $update_sql)) {
-            $email_sent = MailSender::sendOTPEmail($email, $otp, $admin['admin_name']);
+        // Check account status - if pending, cannot reset password
+        if ($admin['admin_status'] == 'pending') {
+            $error_message = "Your account is pending approval. You cannot reset password at this time. Please contact superadmin.";
+        } 
+        // If inactive, also cannot reset password
+        elseif ($admin['admin_status'] != 'active') {
+            $error_message = "Your account is inactive. You cannot reset password. Please contact superadmin.";
+        } 
+        // Only active accounts can reset password
+        else {
+            $otp = sprintf("%06d", mt_rand(1, 999999));
+            $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
             
-            if ($email_sent) {
-                $_SESSION['reset_email'] = $email;
-                $_SESSION['otp_requested'] = true;
-                
-                header("Location: verify_otp.php");
-                exit();
+            $update_sql = "UPDATE admins SET 
+                          otp_code = '$otp', 
+                          otp_expiry = '$otp_expiry'
+                          WHERE admin_email = '$email' AND admin_status = 'active'";
+            
+            if (mysqli_query($conn, $update_sql)) {
+                // Check if rows were actually updated (ensure only active accounts are updated)
+                if (mysqli_affected_rows($conn) > 0) {
+                    $email_sent = MailSender::sendOTPEmail($email, $otp, $admin['admin_name']);
+                    
+                    if ($email_sent) {
+                        $_SESSION['reset_email'] = $email;
+                        $_SESSION['otp_requested'] = true;
+                        
+                        header("Location: verify_otp.php");
+                        exit();
+                    } else {
+                        $error_message = "Failed to send OTP email. Please try again.";
+                    }
+                } else {
+                    $error_message = "Your account is not active. Password reset is not allowed.";
+                }
             } else {
-                $error_message = "Failed to send OTP email. Please try again.";
+                $error_message = "Error generating OTP. Please try again.";
             }
-        } else {
-            $error_message = "Error generating OTP. Please try again.";
         }
     } else {
         $error_message = "Email not found in our system!";
@@ -307,6 +323,37 @@ mysqli_query($conn, $clean_sql);
         margin-top: 10px;
     }
 
+    .password-requirements {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 15px 0;
+        text-align: left;
+        font-size: 13px;
+    }
+
+    .password-requirements h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .password-requirements ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+
+    .password-requirements li {
+        margin-bottom: 5px;
+        color: #7f8c8d;
+    }
+
+    .password-requirements li i {
+        color: #27ae60;
+        margin-right: 5px;
+    }
+
     @media (max-width: 768px) {
         .main-container {
             padding: 20px;
@@ -370,6 +417,7 @@ mysqli_query($conn, $clean_sql);
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" name="password" id="password" placeholder="Password" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
+                            <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
                     
@@ -389,6 +437,9 @@ mysqli_query($conn, $clean_sql);
                     <i class="fa-solid fa-key user-icon"></i>
                     <h2>Reset Password</h2>
                     <p class="instructions">Enter your registered email address. We will send you a 6-digit OTP code to verify your identity.</p>
+                    <p class="instructions" style="color: #e74c3c; font-weight: bold;">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Note: Only active accounts can reset password.
+                    </p>
                     
                     <form method="POST" action="">
                         <div class="input-group">
