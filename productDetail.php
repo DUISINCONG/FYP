@@ -26,7 +26,7 @@ $data = mysqli_fetch_assoc($result);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="pdtCss.css"/>
+    <link rel="stylesheet" href="productdetailcss.css"/>
     <title>Document</title>
     <style>
         div.down {
@@ -41,9 +41,9 @@ $data = mysqli_fetch_assoc($result);
         button[type="button"] {
             height: 50px;
             width: 50px;
-            border: 1px solid #d32f2f;
+            border: 1px solid orange;
             background-color: #fff;
-            color: #d32f2f;
+            color: orange;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
@@ -52,14 +52,14 @@ $data = mysqli_fetch_assoc($result);
         }
 
         button[type="button"]:hover {
-            background-color: #d32f2f;
+            background-color: orange;
             color: #fff;
         }
 
         #qty {
             width: 377px;
             height: 50px;
-            border: 1px solid #d32f2f;
+            border: 1px solid orange;
             outline: none;
             font-size: 16px;
             margin: 0 5px;
@@ -71,7 +71,7 @@ $data = mysqli_fetch_assoc($result);
             width: 500px;
             margin-top: 15px;
             padding: 12px 25px;
-            background-color: #d32f2f;
+            background-color: orange;
             color: #fff;
             border: none;
             border-radius: 36px;
@@ -83,7 +83,7 @@ $data = mysqli_fetch_assoc($result);
         }
 
         button[type="submit"]:hover {
-            background-color: #b71c1c;
+            background-color: orange;
         }
 
         button:focus,
@@ -113,13 +113,13 @@ $data = mysqli_fetch_assoc($result);
                 </ul><br>
             </nav>
         </div>
-        <hr style="height:2px; background-color:red; text-align: center; width: 1200px;">
+        <hr style="height:2px; background-color:orange; text-align: center; width: 1200px; border-color: orange;">
     </header>
 
     <div style="margin-left: 20%; margin-right: 20%; margin-top: 100px;">
         <img style="height: 600px; width: 600px; float: left; margin: 20px; border-radius: 36px;" src="<?php echo $data['product_image']; ?>" alt="Food Image">
         <h1 style="padding: 20px 0px 0px 20px; font-size: 30px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; font-weight: 600;"><?php echo $data['product_name']; ?></h1>
-        <h1 style="font-size: 26px; font-family: 'Montserrat', Arial, sans-serif; font-weight: 700; color: #d32f2f;">RM <?php echo $data['product_price']; ?></h1>
+        <h1 style="font-size: 26px; font-family: 'Montserrat', Arial, sans-serif; font-weight: 700; color: orange;">RM <?php echo $data['product_price']; ?></h1>
         <p style="font-size: 19px; font-family: 'Arial', 'Helvetica Neue', 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #555; text-align: justify;"><?php echo $data['product_description']; ?></p>
 
         <div class="down">
@@ -164,14 +164,19 @@ $data = mysqli_fetch_assoc($result);
         mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$qty', '$totalamount')");
 
         ?>
-            
-        <script>
-
-            alert("<?php echo $data['product_name']; ?> has been added to cart.");
-
-        </script>
-            
         <?php
+            
+        echo "<script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    showAlert('{$data['product_name']} has been added to cart');
+                });
+            </script>";?>
+        
+        <div id="customAlert" class="alert-box">
+            <p id="alertText"></p>
+        </div>
+
+        <?php   
 
     }
 
@@ -207,6 +212,16 @@ $data = mysqli_fetch_assoc($result);
             let value = parseInt(qty.value);
             if (value < 20) qty.value = value + 1;
             updateTotal();
+        }
+
+        function showAlert(message) {
+            const alertBox = document.getElementById("customAlert");
+            document.getElementById("alertText").innerText = message;
+            alertBox.style.display = "block";
+
+            setTimeout(() => {
+                alertBox.style.display = "none";
+            }, 2000);
         }
 
         updateTotal();
