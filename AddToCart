@@ -40,7 +40,7 @@ header {
 .logo {
     font-size: 28px;
     font-weight: 700;
-    color: red;
+    color: orange;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -76,7 +76,7 @@ header {
 }
         
 .nav-links a:hover {
-    color: red;
+    color: orange;
 }
         
 .nav-links a::after {
@@ -86,12 +86,12 @@ header {
     height: 2px;
     bottom: 0;
     left: 0;
-    background-color: red;
+    background-color: orange;
      transition: width 0.3s;
 }
 
 .nav-links button:hover {
-    color: red;
+    color: orange;
 }
         
 .nav-links button::after {
@@ -101,7 +101,7 @@ header {
     height: 2px;
     bottom: 0;
     left: 0;
-    background-color: red;
+    background-color: orange;
      transition: width 0.3s;
 }
         
@@ -147,7 +147,7 @@ header {
     height: 32px;
     border-radius: 50%;
     border: none;
-    background: #e4002b;
+    background: orange;
     color: #fff;
     font-size: 18px;
     cursor: pointer;
