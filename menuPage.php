@@ -1,6 +1,7 @@
 <?php 
     include("db_connect.php"); 
     session_start();
+    $ccid = $_SESSION['id'] ?? "@";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,8 +9,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu</title>
-    <link rel="stylesheet" href="menuCss.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="menu.css"/>
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">-->
     <?php
     $result = mysqli_query($conn, "SELECT * from beverages");
 	$count = mysqli_num_rows($result);
@@ -31,11 +32,20 @@
                     <li><a href="menuPage.php">Menu</a></li>
                     <li><a href="#">PAGES</a></li>
                     <li><a href="#">CONTACT</a></li>
+                    <?php
+                    if($ccid == "@"){?>
+                    <li><a href="customerLogin.php" class="btn">Add To Cart</a></li>
+                    <?php
+                    }else{
+                    ?>
                     <li><a href="AddToCart.php" class="btn">Add To Cart</a></li>
+                    <?php
+                    }
+                    ?>
                 </ul><br>
             </nav>
         </div>
-        <hr style="height:2px; background-color:red; text-align: center; width: 1200px;">
+        <hr style="height:2px; background-color:orange; text-align: center; width: 1200px; border-color: orange;">
         <div class="container">
             <nav class="navbar1">   
                 <ul class="nav-links">
@@ -66,10 +76,25 @@
 
         ?>
         <div class="menutable">	
-   
+
+            <?php
+            if($ccid == "@"){?>
+            
+            <a href="customerLogin.php">
+                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
+            </a>
+
+            <?php
+            }else{?>
+
             <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
                 <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
             </a>
+
+            <?php
+            }
+            ?>
+
             <?php echo $row['product_name']; ?><br>
             <p class="p1">RM<?php echo $row['product_price']; ?></p>
 
@@ -94,9 +119,24 @@
         ?>	
         <div class="menutable">	    
    
+            <?php
+            if($ccid == "@"){?>
+            
+            <a href="customerLogin.php">
+                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
+            </a>
+
+            <?php
+            }else{?>
+
             <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
                 <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
             </a>
+
+            <?php
+            }
+            ?>
+
             <?php echo $row['product_name']; ?><br>
             <p class="p1">RM<?php echo $row['product_price']; ?></p>
 
@@ -121,9 +161,24 @@
         ?>	
         <div class="menutable">	
    
+            <?php
+            if($ccid == "@"){?>
+            
+            <a href="customerLogin.php">
+                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
+            </a>
+
+            <?php
+            }else{?>
+
             <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
                 <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
             </a>
+
+            <?php
+            }
+            ?>
+
             <?php echo $row['product_name']; ?><br>
             <p class="p1">RM<?php echo $row['product_price']; ?></p>
 
@@ -148,9 +203,24 @@
         ?>	
         <div class="menutable">	
    
+            <?php
+            if($ccid == "@"){?>
+            
+            <a href="customerLogin.php">
+                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
+            </a>
+
+            <?php
+            }else{?>
+
             <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
                 <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
             </a>
+
+            <?php
+            }
+            ?>
+
             <?php echo $row['product_name']; ?><br>
             <p class="p1">RM<?php echo $row['product_price']; ?></p>
 
@@ -175,9 +245,24 @@
         ?>	
         <div class="menutable">	
    
+            <?php
+            if($ccid == "@"){?>
+            
+            <a href="customerLogin.php">
+                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
+            </a>
+
+            <?php
+            }else{?>
+
             <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
                 <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
             </a>
+
+            <?php
+            }
+            ?>
+
             <?php echo $row['product_name']; ?><br>
             <p class="p1">RM<?php echo $row['product_price']; ?></p>
 
@@ -235,6 +320,16 @@
             </div>
         </div>
     </footer>-->
+
+    <script>
+        function yid() {
+
+            if($_SESSION['id'] = ""){
+                <a href="customerLogin.php">
+            }
+
+        }
+    </script>
     
 </body>
 </html>
