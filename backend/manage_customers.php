@@ -34,47 +34,23 @@ if ($stmt) {
 
 if (isset($_POST['update_customer'])) {
     $id = mysqli_real_escape_string($conn, $_POST['customer_id']);
-    $new_id = mysqli_real_escape_string($conn, $_POST['new_customer_id']);
     $customer_name = mysqli_real_escape_string($conn, $_POST['customer_name']);
     $customer_email = mysqli_real_escape_string($conn, $_POST['customer_email']);
     $customer_phone = mysqli_real_escape_string($conn, $_POST['customer_phone']);
-    $customer_password = mysqli_real_escape_string($conn, $_POST['customer_password']);
     $customer_status = mysqli_real_escape_string($conn, $_POST['customer_status']);
 
-    if ($id != $new_id) {
-        $check_sql = "SELECT * FROM customers WHERE customer_id='$new_id'";
-        $check_result = mysqli_query($conn, $check_sql);
-        
-        if($check_result && mysqli_num_rows($check_result) > 0) {
-            $error_message = "Error: Customer ID already exists!";
-        } else {
-            $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
-            $check_email_result = mysqli_query($conn, $check_email_sql);
-            
-            if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-                $error_message = "Error: Email already exists!";
-            } else {
-                $sql = "UPDATE customers SET customer_id='$new_id', customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
-                if(mysqli_query($conn, $sql)) {
-                    $success_message = "Customer updated successfully!";
-                } else {
-                    $error_message = "Error updating customer: " . mysqli_error($conn);
-                }
-            }
-        }
+    // 检查邮箱是否已存在（排除当前用户）
+    $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
+    $check_email_result = mysqli_query($conn, $check_email_sql);
+    
+    if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
+        $error_message = "Error: Email already exists!";
     } else {
-        $check_email_sql = "SELECT * FROM customers WHERE customer_email='$customer_email' AND customer_id != $id";
-        $check_email_result = mysqli_query($conn, $check_email_sql);
-        
-        if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
-            $error_message = "Error: Email already exists!";
+        $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_status='$customer_status' WHERE customer_id=$id";
+        if(mysqli_query($conn, $sql)) {
+            $success_message = "Customer updated successfully!";
         } else {
-            $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_password='$customer_password', customer_status='$customer_status' WHERE customer_id=$id";
-            if(mysqli_query($conn, $sql)) {
-                $success_message = "Customer updated successfully!";
-            } else {
-                $error_message = "Error updating customer: " . mysqli_error($conn);
-            }
+            $error_message = "Error updating customer: " . mysqli_error($conn);
         }
     }
 }
@@ -128,6 +104,7 @@ if (!$result) {
             --shadow: 0 2px 10px rgba(0,0,0,0.1);
             --active-color: #ff9800;
             --active-color-dark: #f57c00;
+            --disabled: #f5f5f5;
         }
         
         * {
@@ -321,6 +298,13 @@ if (!$result) {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        input:disabled,
+        select:disabled {
+            background-color: var(--disabled);
+            cursor: not-allowed;
+            color: #666;
         }
         
         .form-row {
@@ -556,6 +540,24 @@ if (!$result) {
             font-style: italic;
         }
         
+        .disabled-field {
+            position: relative;
+        }
+        
+        .disabled-field::after {
+            content: "Locked";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -647,7 +649,7 @@ if (!$result) {
     <div class="container">
         <header>
             <h1>Customer Management</h1>
-            <p class="subtitle">Manage customer information and accounts</p>
+            <p class="subtitle">Manage customer information and accounts (Customer ID and Password cannot be changed)</p>
         </header>
         
         <?php if (isset($success_message)): ?>
@@ -731,7 +733,6 @@ if (!$result) {
                                 '<?php echo addslashes($row['customer_name']); ?>',
                                 '<?php echo addslashes($row['customer_email']); ?>',
                                 '<?php echo addslashes($row['customer_phone']); ?>',
-                                '<?php echo addslashes($row['customer_password']); ?>',
                                 '<?php echo addslashes($status); ?>'
                             )">Edit</button>
                         </td>
@@ -751,31 +752,41 @@ if (!$result) {
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Customer</h2>
+                <p style="font-size: 14px; color: #666; margin-top: 5px;">Note: Customer ID and Password cannot be changed</p>
                 <button class="close-btn" onclick="closeEditModal()">&times;</button>
             </div>
             
             <form method="POST" action="">
                 <input type="hidden" id="editId" name="customer_id">
+                <input type="hidden" id="editCustomerId" name="new_customer_id">
+                
                 <div class="form-group">
-                    <label for="editCustomerId">Customer ID</label>
-                    <input type="number" id="editCustomerId" name="new_customer_id" placeholder="Enter customer ID" required>
+                    <label for="displayCustomerId">Customer ID</label>
+                    <input type="number" id="displayCustomerId" disabled readonly>
+                    <p class="input-hint">Customer ID cannot be changed</p>
                 </div>
+                
                 <div class="form-group">
                     <label for="editCustomerName">Full Name</label>
                     <input type="text" id="editCustomerName" name="customer_name" placeholder="Enter customer name" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="editCustomerPhone">Phone Number</label>
                     <input type="tel" id="editCustomerPhone" name="customer_phone" placeholder="e.g., 0123456789" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="editCustomerEmail">Email Address</label>
                     <input type="email" id="editCustomerEmail" name="customer_email" placeholder="e.g., example@gmail.com" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="editCustomerPassword">Password</label>
-                    <input type="password" id="editCustomerPassword" name="customer_password" placeholder="Enter password" required>
+                    <label for="displayCustomerPassword">Password</label>
+                    <input type="text" id="displayCustomerPassword" value="********" disabled readonly>
+                    <p class="input-hint">Password cannot be changed for security reasons</p>
                 </div>
+                
                 <div class="form-group">
                     <label for="editCustomerStatus">Status</label>
                     <select id="editCustomerStatus" name="customer_status" required>
@@ -783,6 +794,7 @@ if (!$result) {
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
+                
                 <div class="btn-group">
                     <button type="submit" name="update_customer" class="btn btn-primary">Update Customer</button>
                     <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
@@ -797,25 +809,13 @@ if (!$result) {
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         }
 
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-info') && !event.target.closest('.user-info')) {
-                const dropdowns = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.style.display === 'block') {
-                        openDropdown.style.display = 'none';
-                    }
-                }
-            }
-        }
-
-        function openEditModal(id, customer_name, customer_email, customer_phone, customer_password, customer_status) {
+        function openEditModal(id, customer_name, customer_email, customer_phone, customer_status) {
             document.getElementById('editId').value = id;
             document.getElementById('editCustomerId').value = id;
+            document.getElementById('displayCustomerId').value = id;
             document.getElementById('editCustomerName').value = customer_name;
             document.getElementById('editCustomerPhone').value = customer_phone;
             document.getElementById('editCustomerEmail').value = customer_email;
-            document.getElementById('editCustomerPassword').value = customer_password;
             document.getElementById('editCustomerStatus').value = customer_status;
             document.getElementById('editModal').style.display = 'flex';
         }
@@ -828,6 +828,17 @@ if (!$result) {
             const modal = document.getElementById('editModal');
             if (event.target === modal) {
                 closeEditModal();
+            }
+            
+            // 关闭下拉菜单
+            if (!event.target.matches('.user-info') && !event.target.closest('.user-info')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.style.display === 'block') {
+                        openDropdown.style.display = 'none';
+                    }
+                }
             }
         }
 
