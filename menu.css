@@ -199,8 +199,9 @@ footer {
 .A {
     margin-left: 20%;
     margin-right: 20%;
-    float: right;
+    float: left;
 }
+
 
 img {
     height: 250px; 
@@ -235,4 +236,9 @@ hr {
 
 #pz  {
     padding-top: 170px;
+}
+
+.menu-anchor {
+    padding-top: 170px;
+    margin-top: -170px;
 }
