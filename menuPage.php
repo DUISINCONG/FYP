@@ -6,6 +6,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        .A {
+            margin-left: 20%;
+            margin-right: 20%;
+            float: left;
+        }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu</title>
@@ -57,223 +64,77 @@
                     <li></li>
                     <li><a href="#cf">Coffee</a></li>
                     <li></li>   
-                    <li><a href="#sf">Snack Food</a></li>
+                    <li><a href="#<?php $anchor ?>">Snack Food</a></li>
                 </ul><br>
             </nav>
         </div>
     </header>
 
+    <?php
 
-    <div class="A">
-        <div>
-            <h2 id="mf">Main Food</h2>
-        </div>
-                            
-        <?php
+    $gettable = mysqli_query($conn, "SELECT * FROM categories");
 
-        $result = mysqli_query($conn, "select * from main_food where product_status = 'Available'");
-        while($row = mysqli_fetch_assoc($result)){
+    while ($get = mysqli_fetch_assoc($gettable)) {
+        $table = $get['table_name'];
+        $title = $get['category_name'];
+        $anchor = $get['anchor'];
 
         ?>
-        <div class="menutable">	
-
+                    
             <?php
-            if($ccid == "@"){?>
-            
-            <a href="customerLogin.php">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
 
-            <?php
-            }else{?>
+            $tableResult = mysqli_query( $conn, "SELECT * FROM $table WHERE product_status = 'Available'");
+            if($tableResult && mysqli_num_rows($tableResult) > 0){
+                ?>
 
-            <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
+                <div class="A">
+                
+                <div>
+                    <h2 id="<?php echo $anchor; ?>"><?php echo $title; ?></h2><br>
+                </div>
+                <?php
+                while($row = mysqli_fetch_assoc($tableResult)){
 
-            <?php
+                    ?>
+
+                    <div class="menutable">	
+
+                    <?php
+                    if($ccid == "@"){?>
+                    
+                    <a href="customerLogin.php">
+                        <img src="<?php echo "backend/" . $row['product_image']; ?>" alt="Food Image"><br>
+                    </a>
+
+                    <?php
+                    }else{?>
+
+                    <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
+                        <img src="<?php echo "backend/" . $row['product_image']; ?>" alt="Food Image"><br>
+                    </a>
+
+                    <?php
+                    }
+                    ?>
+
+                    <?php echo $row['product_name']; ?><br>
+                    <p class="p1">RM<?php echo $row['product_price']; ?></p>
+
+                    </div>
+
+                    <?php
+                }   
             }
             ?>
 
-            <?php echo $row['product_name']; ?><br>
-            <p class="p1">RM<?php echo $row['product_price']; ?></p>
-
         </div>
 
         <?php
-        }
-        ?>
+
+    }
+
+    ?>
         
-    </div>
-
-    <div class="A">
-        <div>
-            <h2 id="pz">Pizza</h2>
-        </div>
-                            
-        <?php
-
-        $result = mysqli_query($conn, "select * from pizza where product_status = 'Available'");
-        while($row = mysqli_fetch_assoc($result)){
-
-        ?>	
-        <div class="menutable">	    
-   
-            <?php
-            if($ccid == "@"){?>
-            
-            <a href="customerLogin.php">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }else{?>
-
-            <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }
-            ?>
-
-            <?php echo $row['product_name']; ?><br>
-            <p class="p1">RM<?php echo $row['product_price']; ?></p>
-
-        </div>
-
-        <?php
-        }
-        ?>
-        
-    </div>
-
-    <div class="A">
-        <div>
-            <h2 id="bv">Beverages</h2>
-        </div>
-                            
-        <?php
-
-        $result = mysqli_query($conn, "select * from beverages where product_status = 'Available'");
-        while($row = mysqli_fetch_assoc($result)){
-
-        ?>	
-        <div class="menutable">	
-   
-            <?php
-            if($ccid == "@"){?>
-            
-            <a href="customerLogin.php">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }else{?>
-
-            <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }
-            ?>
-
-            <?php echo $row['product_name']; ?><br>
-            <p class="p1">RM<?php echo $row['product_price']; ?></p>
-
-        </div>
-
-        <?php
-        }
-        ?>
-        
-    </div>
-
-    <div class="A">
-        <div>
-            <h2 id="cf">Coffee</h2>
-        </div>
-                            
-        <?php
-
-        $result = mysqli_query($conn, "select * from coffee where product_status = 'Available'");
-        while($row = mysqli_fetch_assoc($result)){
-
-        ?>	
-        <div class="menutable">	
-   
-            <?php
-            if($ccid == "@"){?>
-            
-            <a href="customerLogin.php">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }else{?>
-
-            <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }
-            ?>
-
-            <?php echo $row['product_name']; ?><br>
-            <p class="p1">RM<?php echo $row['product_price']; ?></p>
-
-        </div>
-
-        <?php
-        }
-        ?>
-        
-    </div>
-
-    <div class="A">
-        <div>
-            <h2 id="sf">Snack Food</h2>
-        </div>
-                            
-        <?php
-
-        $result = mysqli_query($conn, "select * from snackfood where product_status = 'Available'");
-        while($row = mysqli_fetch_assoc($result)){
-
-        ?>	
-        <div class="menutable">	
-   
-            <?php
-            if($ccid == "@"){?>
-            
-            <a href="customerLogin.php">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }else{?>
-
-            <a href="productDetail.php?id=<?php echo $row['product_id']; ?>">
-                <img src="<?php echo $row['product_image']; ?>" alt="Food Image"><br>
-            </a>
-
-            <?php
-            }
-            ?>
-
-            <?php echo $row['product_name']; ?><br>
-            <p class="p1">RM<?php echo $row['product_price']; ?></p>
-
-        </div>
-
-        <?php
-        }
-        ?>
-        
-    </div>
-
     <!--<footer>
         <div class="container">
             <div class="footer-content">
@@ -320,16 +181,6 @@
             </div>
         </div>
     </footer>-->
-
-    <script>
-        function yid() {
-
-            if($_SESSION['id'] = ""){
-                <a href="customerLogin.php">
-            }
-
-        }
-    </script>
     
 </body>
 </html>
