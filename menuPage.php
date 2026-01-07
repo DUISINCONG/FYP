@@ -56,15 +56,21 @@
         <div class="container">
             <nav class="navbar1">   
                 <ul class="nav-links">
-                    <li><a  href="#mf">Main Food</a></li>
-                    <li></li>
-                    <li><a href="#pz">Pizza</a></li>
-                    <li></li>
-                    <li><a href="#bv">Beverages</a></li>
-                    <li></li>
-                    <li><a href="#cf">Coffee</a></li>
-                    <li></li>   
-                    <li><a href="#<?php $anchor ?>">Snack Food</a></li>
+                    <?php
+
+                    $gettable = mysqli_query($conn, "SELECT * FROM categories");
+
+                    while ($get = mysqli_fetch_assoc($gettable)) {
+                        $title = $get['category_name'];
+                        $anchor = $get['anchor'];
+
+                        ?>
+                      
+                        <li><a href="#<?php echo $anchor ?>"><?php echo $title ?></a></li>
+                        <li></li> 
+                    <?php
+                    }
+                    ?>
                 </ul><br>
             </nav>
         </div>
@@ -90,7 +96,7 @@
                 <div class="A">
                 
                 <div>
-                    <h2 id="<?php echo $anchor; ?>"><?php echo $title; ?></h2><br>
+                    <h2 class="menu-anchor" id="<?php echo $anchor; ?>"><?php echo $title; ?></h2><br>
                 </div>
                 <?php
                 while($row = mysqli_fetch_assoc($tableResult)){
