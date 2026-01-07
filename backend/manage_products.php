@@ -731,6 +731,7 @@ if (!$result) {
         }
         
         .edit-btn {
+            height: 70px;
             background-color: var(--primary);
             color: white;
         }
