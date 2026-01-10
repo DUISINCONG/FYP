@@ -1,4 +1,5 @@
 <?php
+session_start();
 require __DIR__ . '/../backend/db_connect.php';
 
 $email = $_GET['email'] ?? '';
@@ -43,9 +44,13 @@ if (isset($_POST['verify'])) {
             mysqli_stmt_bind_param($stmt2, "i", $row['customer_id']);
             mysqli_stmt_execute($stmt2);
 
+            session_start(); // ADD THIS at TOP if not present
+
+            $_SESSION['customer_id'] = $row['customer_id'];
+
             echo "<script>
-                alert('Account verified successfully. Please log in.');
-                window.location.href='../customerLogin.php';
+            alert('Account verified successfully!');
+            window.location.href='../homepage.html';
             </script>";
             exit;
 
