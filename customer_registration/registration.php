@@ -1,124 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset ="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <title>Email Verification</title>
+<meta charset="UTF-8">
+<title>Customer Registration | JC Restaurant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body{
-        background-color: #f0f2f5;
-        background-image: url('image/cover.png');
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-        height: 100vh;
-        margin: 0;
-    }
-    
-    .form-container{
-        max-width: 450px;
-        margin: 60px auto;
-        padding: 25px;
-        background-color: white;
-        border-radius: 15px;
-        border: 1px solid #ddd;
-        box-shadow: 0 6px 20px rgb(0, 0, 0 / 0.1);
-        transition: box-shadow 0.3s ease-in-out;
-        margin-top: 150px;
-        margin-right: 250px;
-    }
+<!-- Bootstrap & FontAwesome -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
-.form-container:hover{
-    box-shadow: 0 12px 40px rgb(0, 0, 0 / 0.2);
+<style>
+body{
+    height:100vh;
+    margin:0;
+    background:
+        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+        url("image/cover.png") no-repeat center center / cover;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-right:150px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
- /*h2 border*/
-.form-container h2{
-    text-align: center;
-    margin-bottom: 25px;
-    color: #343a40;
-    border: 2px solid gray;
-    border-radius:10px;
-    padding: 5px 10px;
-    display: inline-block;
-    background-color:#f8f9fa;
-    margin-left: 20px;
+/* Registration Card */
+.register-box{
+    width:420px;
+    background:rgba(0,0,0,0.75);
+    border-radius:15px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);
+    color:#fff;
+}
+
+/* Title */
+.register-box h2{
+    text-align:center;
+    color:#ff8c00;
+    margin-bottom:10px;
+    font-weight:700;
+}
+
+.subtitle{
+    text-align:center;
+    color:#ccc;
+    margin-bottom:25px;
+}
+
+/* Input Group */
+.input-group-text{
+    background:#222;
+    border:none;
+    color:#ff8c00;
 }
 
 .form-control{
-    padding-left:45px;
+    background:#111;
+    border:none;
+    color:#fff;
 }
 
-.input-group-text{
-    width:40px;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-right: none;
+.form-control::placeholder{
+    color:#aaa;
 }
 
-.input-group .form-control{
-    
-    border-left: none;
+.form-control:focus{
+    box-shadow:none;
+    background:#111;
+    color:#fff;
 }
-  </style>
 
+/* Button */
+.btn-orange{
+    background:#ff8c00;
+    border:none;
+    color:#fff;
+    font-weight:600;
+    padding:12px;
+    border-radius:30px;
+    transition:0.3s;
+}
+
+.btn-orange:hover{
+    background:#e67600;
+    transform:translateY(-2px);
+}
+
+/* Login Link */
+.login-link{
+    text-align:center;
+    margin-top:15px;
+    color:#ccc;
+}
+
+.login-link a{
+    color:#ff8c00;
+    text-decoration:none;
+}
+
+.login-link a:hover{
+    text-decoration:underline;
+}
+
+@media(max-width:768px){
+    body{
+        justify-content:center;
+        padding-right:0;
+    }
+}
+</style>
 </head>
+
 <body>
-  <div class="form-container">
-      <h2>Customer Registration</h2>
-      <p class="subtitle">Be Part of the JC Restaurant Family!</p>
 
-      <form method="POST" action="send.php">
-      <div class="mb-3 input-group">
-        <span class="input-group-text"><i class="fas fa-user"></i></span>
-        <input type="text" name="name" id="name" class="form-control" placeholder="Enter Your Name" autocomplete="off">
-        <span class="error-message"></span>
-      </div>
+<div class="register-box">
+    <h2>Customer Registration</h2>
+    <p class="subtitle">Be Part of the JC Restaurant Family!</p>
 
-      <div class="mb-3 input-group">
-        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-        <input type="text" name="email" id="email" class="form-control" placeholder="Enter Email Address" autocomplete="off">
-      </div>
+    <form method="POST" action="send.php">
 
-      <div class="mb-3 input-group">
-        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-        <input type="text" name="phone" id="phone" class="form-control" placeholder="Enter Phone Number" autocomplete="off">
-      </div>
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fas fa-user"></i></span>
+            <input type="text" name="name" class="form-control" placeholder="Full Name" required>
+        </div>
 
-      <div class="mb-3 input-group">
-        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-        <input type="text" name="password" id="password" class="form-control" placeholder="Enter Password" autocomplete="off">
-      </div>
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+        </div>
 
-      <div class="mb-3 input-group">
-        <input type="hidden" name="otp" id="otp" class="form-control">
-        <input type="hidden" name="subject" id="subject" class="form-control" value="Received OTP">
-      </div>
-      <button type="submit" name="send" class="btn btn-primary w-100">Signup <i class="fas fa-aroow-right"></i></button>
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+            <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+        </div>
 
-      </form>
-  </div>
-</body>
-</html>
+        <div class="mb-3 input-group">
+            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
+
+        <!-- Hidden OTP -->
+        <input type="hidden" name="otp" id="otp">
+        <input type="hidden" name="subject" value="Received OTP">
+
+        <button type="submit" name="send" class="btn btn-orange w-100">
+            Signup <i class="fas fa-arrow-right"></i>
+        </button>
+    </form>
+
+    <div class="login-link">
+        Already have an account?
+        <a href="/jc_restaurant/customerLogin.php">Login here</a>
+    </div>
+</div>
 
 <script>
-  function generateRandomNumber(){
-
-    let min = 1000;
-    let max = 3000;
-    let randomNumber = Math.floor(Math.random() * (max - min +1)) +min;
-
-    let lastGeneratedNumber = localStorage.getItem ('lastGeneratedNumber');
-    while (randomNumber === parseInt(lastGeneratedNumber)){
-
-      randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-localStorage.setItem('lastGeneratedNumber' ,randomNumber);
-return randomNumber;
-  }
-
-  document.getElementById('otp') .value = generateRandomNumber();
+function generateOTP(){
+    return Math.floor(100000 + Math.random() * 900000);
+}
+document.getElementById("otp").value = generateOTP();
 </script>
+
+</body>
+</html>
