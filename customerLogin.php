@@ -68,7 +68,11 @@ if(isset($_POST['loginbutton'])) {
   </style>
 </head>
 <body>
-
+    <?php if (isset($_GET['registered'])): ?>
+    <p style="color:green; text-align:center;">
+        Registration successful. Please login.
+    </p>
+    <?php endif; ?>
     <header>
         <div class="container">
             <nav class="navbar">
@@ -80,7 +84,7 @@ if(isset($_POST['loginbutton'])) {
                     <li><a href="index.html">HOME</a></li>
                     <li><a href="#">ABOUT</a></li>
                     <li><a href="#">SERVICE</a></li>
-                    <li><a href="menuPage.php">Menu</a></li>
+                    <li><a href="menuPage.php">MENU</a></li>
                     <li><a href="#">PAGES</a></li>
                     <li><a href="#">CONTACT</a></li>
                     <?php
@@ -134,7 +138,6 @@ if(isset($_POST['loginbutton'])) {
                 </div>
 
             </form>
-
             <div class="er">
 
             <?php
@@ -154,7 +157,10 @@ if(isset($_POST['loginbutton'])) {
             <a class="fo" href="">Forgot your password ?</a><br>
 
             <div class="E">
-            <button type="button">Register</button>
+            <button type="button"
+            onclick="window.location.href='/jc_restaurant/customer_registration/registration.php'">
+            Register
+            </button>
             </div>
 
         </div>
