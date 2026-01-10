@@ -1,209 +1,224 @@
 <?php
-// CONNECT TO DATABASE
-include 'db_connect.php';
+session_start();
+require __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/PHPMailer/src/SMTP.php';
+require __DIR__ . '/PHPMailer/src/Exception.php'; 
+require "backend/db_connect.php";
 
-$success = "";
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$step = $_GET['step'] ?? 'email';
 $error = "";
+$success = "";
 
-// WHEN FORM IS SUBMITTED
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// ================================
+// STEP 1: SEND OTP
+// ================================
+if (isset($_POST['send_otp'])) {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $check = mysqli_query($conn, "SELECT * FROM customers WHERE customer_email='$email'");
+    if (mysqli_num_rows($check) == 1) {
+        $otp = rand(100000, 999999);
+        $expiry = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+        mysqli_query($conn, "UPDATE customers SET reset_otp='$otp', otp_expiry='$expiry' WHERE customer_email='$email'");
 
-    $newPass = trim($_POST["new_password"]);
-    $confirmPass = trim($_POST["confirm_password"]);
+        // Send email via PHPMailer
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'keishavrao2526@gmail.com'; // your Gmail
+            $mail->Password   = 'mrfkyycbokmvtvah';         // Gmail App Password
+            $mail->SMTPSecure = 'tls';
+            $mail->Port       = 587;
 
-    // BASIC VALIDATION
-    if (empty($newPass) || empty($confirmPass)) {
-        $error = "Fill up this section first";
-    } elseif (strlen($newPass) < 6) {
-        $error = "Password must be at least 6 characters";
-    } elseif ($newPass !== $confirmPass) {
-        $error = "Passwords do not match";
-    } else {
-        // HASH PASSWORD
-        $hashed = password_hash($newPass, PASSWORD_DEFAULT);
+            $mail->setFrom('keishavrao2526@gmail.com', 'JC Restaurant');
+            $mail->addAddress($email);
 
-        // UPDATE DATABASE (CHANGE `customers` to your table)
-        $sql = "UPDATE customers SET password='$hashed' WHERE id=1"; 
-        // NOTE: Replace id=1 with SESSION user ID later
+            $mail->isHTML(true);
+            $mail->Subject = 'JC Restaurant Password Reset OTP';
+            $mail->Body    = "Your OTP is: <b>$otp</b><br>It expires in 5 minutes.";
 
-        if (mysqli_query($conn, $sql)) {
-            $success = "Password reset successful!!";
-        } else {
-            $error = "Database error: " . mysqli_error($conn);
+            $mail->send();
+
+            $_SESSION['reset_email'] = $email;
+            header("Location: reset-password.php?step=verify");
+            exit;
+        } catch (Exception $e) {
+            $error = "OTP email could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
+    } else {
+        $error = "Email not found.";
+    }
+}
+
+// ================================
+// STEP 2: VERIFY OTP
+// ================================
+if (isset($_POST['verify_otp'])) {
+    $otp = $_POST['otp'];
+    $email = $_SESSION['reset_email'] ?? '';
+    $q = mysqli_query($conn, "
+        SELECT * FROM customers 
+        WHERE customer_email='$email' 
+        AND reset_otp='$otp'
+        AND otp_expiry >= NOW()
+    ");
+    if (mysqli_num_rows($q) == 1) {
+        header("Location: reset-password.php?step=newpassword");
+        exit;
+    } else {
+        $error = "Invalid or expired OTP.";
+    }
+}
+
+// ================================
+// STEP 3: RESET PASSWORD
+// ================================
+if (isset($_POST['reset_password'])) {
+    $password = $_POST['password'];
+    $confirm = $_POST['confirm'];
+    $email = $_SESSION['reset_email'] ?? '';
+    if ($password !== $confirm) {
+        $error = "Passwords do not match.";
+    } else {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        mysqli_query($conn, "
+            UPDATE customers 
+            SET password_hash='$hashed', reset_otp=NULL, otp_expiry=NULL 
+            WHERE customer_email='$email'
+        ");
+        session_destroy();
+        $success = "Password reset successful!! You can now login.";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reset Password | JC Restaurant</title>
-
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #3e2723, #6d4c41, #8d6e63);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* BACKGROUND PARTICLES */
-    #particles-js {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
-
-    .overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(20, 10, 0, 0.5);
-      z-index: 1;
-    }
-
-    .form-card {
-      z-index: 2;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 16px;
-      padding: 25px 55px;
-      width: 400px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.25);
-      position: relative;
-    }
-
-    .form-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #6d4c41, #3e2723, #6d4c41);
-      background-size: 200% 100%;
-      animation: shimmer 3s linear infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    h2 { color: #3e2723; }
-    .subtitle { color: #6d4c41; margin-bottom: 20px; }
-
-    label {
-      display: block;
-      text-align: left;
-      color: #4e342e;
-      font-weight: 600;
-      margin-top: 10px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #a1887f;
-      margin-bottom: 8px;
-      background: rgba(255,255,255,0.8);
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #6d4c41;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    button:hover { background: #3e2723; }
-
-    /* SUCCESS BOX */
-    .success-box {
-      background: #d5f4d3;
-      border-left: 6px solid #1b8a00;
-      padding: 12px;
-      border-radius: 6px;
-      color: #145c00;
-      display: <?php echo $success ? 'block' : 'none'; ?>;
-      margin-bottom: 15px;
-      font-weight: bold;
-    }
-
-    /* ERROR BOX */
-    .error-box {
-      background: #ffd3d3;
-      border-left: 6px solid #d10000;
-      padding: 10px;
-      border-radius: 6px;
-      color: #8a0000;
-      display: <?php echo $error ? 'block' : 'none'; ?>;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Reset Password</title>
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(120deg,#0f2027,#203a43,#2c5364);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.profile-card {
+    width: 420px;
+    background: rgba(0,0,0,0.75);
+    padding: 30px;
+    border-radius: 15px;
+    color: #fff;
+}
+.profile-card h2 {
+    text-align: center;
+    color: #ff9800;
+}
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: none;
+    background: #222;
+    color: #fff;
+}
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 25px;
+    border: none;
+    background: #ff9800;
+    font-weight: bold;
+    cursor: pointer;
+}
+button:hover {
+    background: #ffa726;
+}
+.error {
+    background: #ff4d4d;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+.success {
+    background: #4caf50;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+.toggle {
+    cursor: pointer;
+    font-size: 14px;
+    display: block;
+    margin-top: 5px;
+}
+</style>
 </head>
 <body>
 
-<div id="particles-js"></div>
-<div class="overlay"></div>
+<div class="profile-card">
+<h2>Reset Password</h2>
 
-<div class="form-card">
-  <h2>Reset Password</h2>
-  <p class="subtitle">Enter a new password</p>
+<?php if ($error): ?>
+<div class="error"><?= htmlspecialchars($error) ?></div>
+<?php endif; ?>
+<?php if ($success): ?>
+<div class="success"><?= htmlspecialchars($success) ?></div>
+<div style="text-align:center; margin-top: 15px;">
+    <button onclick="window.location.href='customerLogin.php'">Go to Login</button>
+</div>
+<?php endif; ?>
 
-  <!-- SUCCESS MESSAGE -->
-  <div class="success-box">
-      <?php echo $success; ?>
-  </div>
+<?php if (!$success): ?>
 
-  <!-- ERROR MESSAGE -->
-  <div class="error-box">
-      <?php echo $error; ?>
-  </div>
+<!-- STEP 1: ENTER EMAIL -->
+<?php if ($step == "email"): ?>
+<form method="post">
+    <input type="email" name="email" placeholder="Enter your email" required>
+    <button name="send_otp">Send OTP</button>
+</form>
+<?php endif; ?>
 
-  <form method="POST">
+<!-- STEP 2: VERIFY OTP -->
+<?php if ($step == "verify"): ?>
+<form method="post">
+    <input type="text" name="otp" placeholder="Enter OTP" required>
+    <button name="verify_otp">Verify OTP</button>
+</form>
+<?php endif; ?>
 
-    <label>New Password</label>
-    <input type="password" name="new_password" placeholder="Enter new password">
+<!-- STEP 3: NEW PASSWORD -->
+<?php if ($step == "newpassword"): ?>
+<form method="post">
+    <input type="password" id="pass" name="password" placeholder="New Password" required>
+    <input type="password" id="confirm" name="confirm" placeholder="Confirm Password" required>
+    <span class="toggle" onclick="toggle()"> Show / Hide Password</span>
+    <button name="reset_password">Reset Password</button>
+</form>
+<?php endif; ?>
 
-    <label>Confirm Password</label>
-    <input type="password" name="confirm_password" placeholder="Confirm password">
-
-    <button type="submit">Reset Password</button>
-  </form>
+<?php endif; ?>
 </div>
 
-<!-- PARTICLES JS -->
-<script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-
 <script>
-particlesJS("particles-js", {
-  particles: {
-    number: { value: 90 },
-    size: { value: 3 },
-    move: { speed: 2 },
-    opacity: { value: 0.3 },
-    color: { value: "#ffffff" },
-    line_linked: {
-      enable: true,
-      color: "#ffffff",
-      opacity: 0.2
-    }
-  }
-});
+function toggle() {
+    let p1 = document.getElementById("pass");
+    let p2 = document.getElementById("confirm");
+    p1.type = p1.type === "password" ? "text" : "password";
+    p2.type = p2.type === "password" ? "text" : "password";
+}
 </script>
 
 </body>
