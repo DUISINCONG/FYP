@@ -1,8 +1,10 @@
 <?php
-include("db_connect.php");
+include("backend/db_connect.php");
+
 
 session_start();
-$ccid = $_SESSION['id'] ?? "@";
+$ccid = $_SESSION['customer_id'] ?? "@";
+
 $error = 0;
 
 if(isset($_POST['loginbutton'])) {
@@ -20,7 +22,7 @@ if(isset($_POST['loginbutton'])) {
         if(mysqli_num_rows($result1) == true) {
 
             $customer = mysqli_fetch_assoc($result1);
-            $_SESSION['id'] = $customer['customer_id'];
+            $_SESSION['customer_id'] = $customer['customer_id'];
 
             header("Location: menuPage.php");
             exit();
