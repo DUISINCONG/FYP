@@ -1,39 +1,43 @@
 <?php
 include("backend/db_connect.php");
 
-
 session_start();
 $ccid = $_SESSION['customer_id'] ?? "@";
 
 $error = 0;
 
-if(isset($_POST['loginbutton'])) {
+if (isset($_POST['loginbutton'])) {
+
     $cemail = mysqli_real_escape_string($conn, $_POST['cemail']);
     $cpassword = $_POST['cpassword'];
 
-    $query = "SELECT * FROM customers WHERE customer_email = '$cemail'";
+    // Get user by email
+    $query = "SELECT * FROM customers WHERE customer_email = '$cemail' LIMIT 1";
     $result = mysqli_query($conn, $query);
 
-    $query1 = "SELECT * FROM customers WHERE customer_password = '$cpassword'";   
-    $result1 = mysqli_query($conn, $query1);
+    if (mysqli_num_rows($result) === 1) {
 
-    if(mysqli_num_rows($result) == true) {
-        
-        if(mysqli_num_rows($result1) == true) {
+        $customer = mysqli_fetch_assoc($result);
 
-            $customer = mysqli_fetch_assoc($result1);
+        // ✅ VERIFY HASHED PASSWORD
+        if (password_verify($cpassword, $customer['password_hash'])) {
+
             $_SESSION['customer_id'] = $customer['customer_id'];
 
             header("Location: menuPage.php");
             exit();
 
         } else {
+            // password wrong
             $error = 2;
         }
+
     } else {
+        // email not found
         $error = 1;
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -110,6 +114,12 @@ if(isset($_POST['loginbutton'])) {
             <h2>Welcome to JC Restaurant</h2>
 
             <img src="JC_Restaurant_Logo5.png" class="center">
+      
+            <?php if (isset($_GET['reset'])): ?>
+            <p style="color:green; text-align:center;">
+            Reset password successful!!
+            </p>
+            <?php endif; ?>
 
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
 
@@ -154,7 +164,7 @@ if(isset($_POST['loginbutton'])) {
 
             <p>--------------- or ---------------</p>
 
-            <a class="fo" href="">Forgot your password ?</a><br>
+            <a class="fo" href="reset-password.php">Forgot your password?</a></b>
 
             <div class="E">
             <button type="button"
