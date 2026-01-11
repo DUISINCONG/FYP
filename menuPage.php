@@ -1,6 +1,9 @@
-<?php 
-    include("db_connect.php"); 
-    session_start();
+<?php
+require __DIR__ . "/backend/db_connect.php";
+session_start();
+if (!$conn) {
+    die("DB connection failed");
+}
     $ccid = $_SESSION['id'] ?? "@";
 ?>
 <!DOCTYPE html>
