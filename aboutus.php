@@ -1,8 +1,3 @@
-<?php 
-    include("db_connect.php"); 
-    session_start();
-    $ccid = $_SESSION['id'] ?? "@";
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +33,7 @@
             padding: 0 20px;
         }
         
-        /* Header Styles - 完全与其他页面相同 */
+        /* Header Styles - 与其他页面相同 */
         header {
             background-color: rgba(255, 255, 255, 0.95);
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
@@ -53,15 +48,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-        }
-        
-        .navbar1 {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px 0;
-            height: 5px;
+            padding: 25px 0;
+            margin-left: 30px;
+            margin-right: 50px;
         }
         
         .logo {
@@ -123,6 +112,31 @@
         
         .active {
             color: orange;
+        }
+        
+        /* Cart button - 与contactus.php相同 */
+        .cart-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: transparent;
+            color: var(--secondary);
+            border: 2px solid orange;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-family: "Times New Roman", Times, serif;
+        }
+        
+        .cart-btn:hover {
+            background-color: orange;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .cart-btn i {
+            margin-right: 8px;
         }
         
         /* Hero Banner */
@@ -532,47 +546,6 @@
             transform: translateY(-3px);
         }
         
-        /* Newsletter Form */
-        .newsletter-form {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .newsletter-form input {
-            padding: 10px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 2px;
-            font-size: 0.9rem;
-            font-family: "Times New Roman", Times, serif;
-        }
-        
-        .newsletter-form input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
-            font-family: "Times New Roman", Times, serif;
-        }
-        
-        .newsletter-form button {
-            padding: 10px 15px;
-            background: orange;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            font-family: "Times New Roman", Times, serif;
-        }
-        
-        .newsletter-form button:hover {
-            background: #e69500;
-            transform: translateY(-2px);
-        }
-        
         /* Responsive Design */
         @media (max-width: 992px) {
             .story-content {
@@ -605,7 +578,7 @@
                 font-size: 2rem;
             }
             
-            .navbar, .navbar1 {
+            .navbar {
                 flex-direction: column;
                 text-align: center;
             }
@@ -664,29 +637,19 @@
                 <ul class="nav-links">
                     <li><a href="homepage.html">HOME</a></li>
                     <li><a href="aboutus.php" class="active">ABOUT</a></li>
-                    <li><a href="#">SERVICE</a></li>
-                    <li><a href="menuPage.php">Menu</a></li>
-                    <li><a href="#">PAGES</a></li>
-                    <li><a href="#">CONTACT</a></li>
-                    <?php
-                    if($ccid == "@"){?>
-                    <li><a href="customerLogin.php">Add To Cart</a></li>
-                    <?php
-                    }else{
-                    ?>
-                    <li><a href="AddToCart.php">Add To Cart</a></li>
-                    <?php
-                    }
-                    ?>
-                </ul><br>
-            </nav>
-        </div>
-        <hr style="height:2px; background-color:orange; text-align: center; width: 1200px; border-color: orange; margin: 0 auto;">
-        <div class="container">
-            <nav class="navbar1">   
-                <ul class="nav-links">
-                    <!-- 这里可以添加子导航链接，如果需要的话 -->
-                </ul><br>
+                    <li><a href="menuPage.php">MENU</a></li>
+                    <li><a href="contactus.php">CONTACT</a></li>
+                    <li>
+                        <a href="/jc_restaurant/customer_profile/edit-profile.php">
+                            EDIT PROFILE
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="cart-btn">
+                            <i class="fa-solid fa-cart-shopping"></i>My Cart
+                        </a>
+                    </li>
+                </ul>
             </nav>
         </div>
     </header>
@@ -899,9 +862,9 @@
                     <ul class="footer-links">
                         <li><a href="homepage.html">Home</a></li>
                         <li><a href="aboutus.php">About Us</a></li>
-                        <li><a href="#">Services</a></li>
+                        <li><a href="contactus.php">Contact</a></li>
                         <li><a href="menuPage.php">Menu</a></li>
-                        <li><a href="#">Reservation</a></li>
+                        <li><a href="/jc_restaurant/customer_profile/edit-profile.php">Edit Profile</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
@@ -912,14 +875,6 @@
                         <li><i class="fas fa-envelope"></i><a href="#">info@jcrestaurant.com</a></li>
                         <li><i class="fas fa-clock"></i><a href="#">Mon-Sun: 11AM - 11PM</a></li>
                     </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Newsletter</h3>
-                    <p>Subscribe to our newsletter for updates and special offers.</p>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Your Email" required>
-                        <button type="submit">Subscribe</button>
-                    </form>
                 </div>
             </div>
             <div class="footer-bottom">
