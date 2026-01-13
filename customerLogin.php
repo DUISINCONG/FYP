@@ -23,7 +23,7 @@ if (isset($_POST['loginbutton'])) {
         if (password_verify($cpassword, $hashFromDB)) {
 
             $_SESSION['id'] = $customer['customer_id'];
-            header("Location: menuPage.php");
+            header("Location: homepage.html");
             exit();
 
         } else {
@@ -466,3 +466,4 @@ if (isset($_POST['loginbutton'])) {
 
 </body>
 </html> 
+
