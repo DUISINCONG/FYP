@@ -74,7 +74,7 @@ function generateSecureToken($length = 32) {
 function sendPasswordSetupEmail($recipient_email, $admin_name, $token) {
     require_once 'login/vendor/autoload.php';
     
-    $setup_link = "http://" . $_SERVER['HTTP_HOST'] . "/FYP/FYP/backend/setup_password.php?token=" . $token;
+    $setup_link = "http://" . $_SERVER['HTTP_HOST'] . "/jc_restaurant/backend/setup_password.php?token=" . $token;
     
     try {
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
