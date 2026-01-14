@@ -116,7 +116,7 @@ if (isset($_GET['token'])) {
             color: white;
             padding: 15px 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             box-shadow: var(--shadow);
         }
