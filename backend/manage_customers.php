@@ -37,6 +37,7 @@ if (isset($_POST['update_customer'])) {
     $customer_name = mysqli_real_escape_string($conn, $_POST['customer_name']);
     $customer_email = mysqli_real_escape_string($conn, $_POST['customer_email']);
     $customer_phone = mysqli_real_escape_string($conn, $_POST['customer_phone']);
+    $customer_address = mysqli_real_escape_string($conn, $_POST['customer_address']);
     $customer_status = mysqli_real_escape_string($conn, $_POST['customer_status']);
 
     // 检查邮箱是否已存在（排除当前用户）
@@ -46,7 +47,7 @@ if (isset($_POST['update_customer'])) {
     if($check_email_result && mysqli_num_rows($check_email_result) > 0) {
         $error_message = "Error: Email already exists!";
     } else {
-        $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_status='$customer_status' WHERE customer_id=$id";
+        $sql = "UPDATE customers SET customer_name='$customer_name', customer_email='$customer_email', customer_phone='$customer_phone', customer_address='$customer_address', customer_status='$customer_status' WHERE customer_id=$id";
         if(mysqli_query($conn, $sql)) {
             $success_message = "Customer updated successfully!";
         } else {
@@ -71,7 +72,8 @@ if (!empty($search)) {
             customer_id LIKE '%$search%' OR 
             customer_name LIKE '%$search%' OR 
             customer_email LIKE '%$search%' OR 
-            customer_phone LIKE '%$search%' 
+            customer_phone LIKE '%$search%' OR
+            customer_address LIKE '%$search%'
             ORDER BY $sort_by";
 } else {
     $sql = "SELECT * FROM customers ORDER BY $sort_by";
@@ -232,7 +234,7 @@ if (!$result) {
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -258,6 +260,7 @@ if (!$result) {
             box-shadow: var(--shadow);
             padding: 25px;
             margin-bottom: 30px;
+            overflow-x: auto;
         }
         
         h2 {
@@ -284,7 +287,8 @@ if (!$result) {
         input[type="tel"],
         input[type="number"],
         input[type="search"],
-        select {
+        select,
+        textarea {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid var(--border);
@@ -293,15 +297,22 @@ if (!$result) {
             transition: border 0.3s;
         }
         
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
         input:focus,
-        select:focus {
+        select:focus,
+        textarea:focus {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         
         input:disabled,
-        select:disabled {
+        select:disabled,
+        textarea:disabled {
             background-color: var(--disabled);
             cursor: not-allowed;
             color: #666;
@@ -403,10 +414,11 @@ if (!$result) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            min-width: 1000px;
         }
         
         th, td {
-            padding: 15px;
+            padding: 12px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
@@ -418,10 +430,23 @@ if (!$result) {
             cursor: pointer;
             position: relative;
             transition: background-color 0.3s;
+            vertical-align: middle;
+            text-align: center;
+            height: 60px;
+            line-height: 1.4;
         }
         
         th:hover {
             background-color: #dfe6e9;
+        }
+        
+        /* 确保Actions表头不可点击 */
+        th:last-child {
+            cursor: default;
+        }
+        
+        th:last-child:hover {
+            background-color: var(--light);
         }
         
         .sort-indicator {
@@ -436,6 +461,7 @@ if (!$result) {
         .actions {
             display: flex;
             gap: 10px;
+            white-space: nowrap;
         }
         
         .action-btn {
@@ -452,8 +478,10 @@ if (!$result) {
         }
         
         .edit-btn {
+            margin-left:20px;
             background-color: var(--primary);
             color: white;
+            padding: 22px 25px;
         }
         
         .edit-btn:hover {
@@ -466,6 +494,7 @@ if (!$result) {
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
+            white-space: nowrap;
         }
         
         .status-active {
@@ -476,6 +505,28 @@ if (!$result) {
         .status-inactive {
             background-color: rgba(149, 165, 166, 0.2);
             color: #7f8c8d;
+        }
+        
+        .customer-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+        }
+        
+        .no-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            color: #7f8c8d;
+            font-size: 12px;
+            font-weight: 600;
         }
         
         .modal {
@@ -498,6 +549,8 @@ if (!$result) {
             width: 100%;
             max-width: 600px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
@@ -571,6 +624,7 @@ if (!$result) {
             table {
                 display: block;
                 overflow-x: auto;
+                min-width: unset;
             }
             
             .banner {
@@ -605,6 +659,12 @@ if (!$result) {
                 right: auto;
                 left: 50%;
                 transform: translateX(-50%);
+            }
+            
+            .customer-photo,
+            .no-photo {
+                width: 50px;
+                height: 50px;
             }
         }
     </style>
@@ -664,7 +724,7 @@ if (!$result) {
             <h2>Customer List</h2>
             
             <form method="GET" action="" class="search-container">
-                <input type="search" name="search" class="search-input" placeholder="Search by ID, name, email, or phone..." value="<?php echo htmlspecialchars($search); ?>">
+                <input type="search" name="search" class="search-input" placeholder="Search by ID, name, email, phone, or address..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit" class="search-btn">Search</button>
                 <?php if (!empty($search)): ?>
                     <a href="manage_customers.php" class="btn btn-secondary">Clear</a>
@@ -678,6 +738,7 @@ if (!$result) {
                         <option value="customer_id" <?php echo $sort_by == 'customer_id' ? 'selected' : ''; ?>>ID</option>
                         <option value="customer_name" <?php echo $sort_by == 'customer_name' ? 'selected' : ''; ?>>Name</option>
                         <option value="customer_status" <?php echo $sort_by == 'customer_status' ? 'selected' : ''; ?>>Status</option>
+                        <option value="created_at" <?php echo $sort_by == 'created_at' ? 'selected' : ''; ?>>Date Created</option>
                     </select>
                 </div>
                 
@@ -696,6 +757,7 @@ if (!$result) {
                                 <?php if ($sort_by == 'customer_id'): ?>↓<?php endif; ?>
                             </span>
                         </th>
+                        <th>Photo</th>
                         <th onclick="sortTable('customer_name')">
                             Name
                             <span class="sort-indicator">
@@ -704,6 +766,7 @@ if (!$result) {
                         </th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Address</th>
                         <th onclick="sortTable('customer_status')">
                             Status
                             <span class="sort-indicator">
@@ -716,12 +779,22 @@ if (!$result) {
                 <tbody>
                     <?php while($row = mysqli_fetch_assoc($result)) { 
                         $status = !empty($row['customer_status']) ? $row['customer_status'] : 'active';
+                        $photo_path = !empty($row['customer_photo']) ? $row['customer_photo'] : null;
+                        $address = !empty($row['customer_address']) ? $row['customer_address'] : 'No address provided';
                     ?>
                     <tr>
                         <td><?php echo $row['customer_id']; ?></td>
-                        <td><?php echo $row['customer_name']; ?></td>
-                        <td><?php echo $row['customer_email']; ?></td>
-                        <td><?php echo $row['customer_phone']; ?></td>
+                        <td>
+                            <?php if ($photo_path && file_exists($photo_path)): ?>
+                                <img src="<?php echo $photo_path; ?>" alt="Customer Photo" class="customer-photo">
+                            <?php else: ?>
+                                <div class="no-photo">No Photo</div>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($row['customer_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['customer_email']); ?></td>
+                        <td><?php echo htmlspecialchars($row['customer_phone']); ?></td>
+                        <td><?php echo htmlspecialchars(substr($address, 0, 50)); ?><?php echo strlen($address) > 50 ? '...' : ''; ?></td>
                         <td>
                             <span class="status-badge status-<?php echo $status; ?>">
                                 <?php echo ucfirst($status); ?>
@@ -733,6 +806,7 @@ if (!$result) {
                                 '<?php echo addslashes($row['customer_name']); ?>',
                                 '<?php echo addslashes($row['customer_email']); ?>',
                                 '<?php echo addslashes($row['customer_phone']); ?>',
+                                '<?php echo addslashes($address); ?>',
                                 '<?php echo addslashes($status); ?>'
                             )">Edit</button>
                         </td>
@@ -782,6 +856,11 @@ if (!$result) {
                 </div>
                 
                 <div class="form-group">
+                    <label for="editCustomerAddress">Address</label>
+                    <textarea id="editCustomerAddress" name="customer_address" placeholder="Enter customer address" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
                     <label for="displayCustomerPassword">Password</label>
                     <input type="text" id="displayCustomerPassword" value="********" disabled readonly>
                     <p class="input-hint">Password cannot be changed for security reasons</p>
@@ -809,13 +888,14 @@ if (!$result) {
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         }
 
-        function openEditModal(id, customer_name, customer_email, customer_phone, customer_status) {
+        function openEditModal(id, customer_name, customer_email, customer_phone, customer_address, customer_status) {
             document.getElementById('editId').value = id;
             document.getElementById('editCustomerId').value = id;
             document.getElementById('displayCustomerId').value = id;
             document.getElementById('editCustomerName').value = customer_name;
             document.getElementById('editCustomerPhone').value = customer_phone;
             document.getElementById('editCustomerEmail').value = customer_email;
+            document.getElementById('editCustomerAddress').value = customer_address;
             document.getElementById('editCustomerStatus').value = customer_status;
             document.getElementById('editModal').style.display = 'flex';
         }
