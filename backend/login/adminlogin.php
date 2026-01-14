@@ -47,7 +47,7 @@ if (isset($_POST['login'])) {
                     $_SESSION['welcome_message'] = "Welcome Admin!";
                 }
 
-                header("Location: /FYP/FYP/backend/adminhomepage.php");
+                header("Location: ../adminhomepage.php");
                 exit();
             } else {
                 $error_message = "Invalid password!";
@@ -417,7 +417,6 @@ mysqli_query($conn, $clean_sql);
                         <i class="fa-solid fa-lock"></i>
                         <input type="password" name="password" id="password" placeholder="Password" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">
-                            <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
                     
