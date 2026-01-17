@@ -35,11 +35,6 @@ if (isset($_POST['login'])) {
                 $_SESSION['admin_name'] = $admin['admin_name'];
                 $_SESSION['role'] = $admin['role'];
                 $_SESSION['logged_in'] = true;
-                
-                $login_time = date('Y-m-d H:i:s');
-                $log_sql = "INSERT INTO admin_logs (admin_id, action, action_time) 
-                           VALUES ('{$admin['admin_id']}', 'Login', '$login_time')";
-                mysqli_query($conn, $log_sql);
 
                 if ($admin['role'] === 'superadmin') {
                     $_SESSION['welcome_message'] = "Welcome Super Admin!";
