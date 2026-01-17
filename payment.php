@@ -23,7 +23,7 @@
 
         if (mysqli_num_rows($result) === 1) {
 
-                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'completed' WHERE customer_id = '$customer_id' and order_status = 'active'");
+                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'completed' WHERE customer_id = '$customer_id' and order_status = 'incart'");
 
 
                 mysqli_query($conn, "update customers set customer_address = '$address' WHERE customer_id = $customer_id");
@@ -62,13 +62,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-            <style>
+        <style>
         .A {
-            margin-top: 150px;
-            margin-left: 20%;
-            margin-right: 20%;
-            float: left;
-        }
+    margin-top: 150px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
         footer {
             margin-top: 80px;
@@ -431,6 +432,111 @@
             }
         }
 
+        form {
+            max-width: 500px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 30px 35px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .address input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            margin-bottom: 25px;
+        }
+
+        .address input:focus {
+            outline: none;
+            border-color: orange;
+            box-shadow: 0 0 0 2px rgba(228,0,43,0.15);
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: orange;
+            font-weight: 700;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            margin-bottom: 18px;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: orange;
+            box-shadow: 0 0 0 2px rgba(228,0,43,0.15);
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: right;
+            color: #111;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            background-color: white;
+            color: orange;
+            border-color: orange;
+            padding: 15px;
+            font-size: 17px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: orange;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .deliver-title {
+            color: orange;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 25px 0;
+            color: #111;
+        }
+
+        .total-label {
+            color: #555;
+        }
+
+        .total-price {
+            color: #000;
+        }
+
     </style>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -468,10 +574,6 @@
 
     <div class="A">
 
-        <div>
-            <h2>Deliver to</h2>
-        </div>
-
         <?php
 
         $customerid = $_SESSION['id'];
@@ -481,8 +583,15 @@
         while($row = mysqli_fetch_assoc($result)){
 
         ?>
-        <div>	
+
+        <div>
+            <h3 style="font-size: 24px;">Payment</h3>
+        </div>
+
+        <div class="center">	
             <form action="" method="post">
+
+                <h2 class="deliver-title">Deliver to</h2>
 
                 <div>
                     <div class="address">
@@ -514,7 +623,7 @@
 
                     <?php
 
-                    $result1 = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
+                    $result1 = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'incart'");
                     while($row1 = mysqli_fetch_assoc($result1)){
 
                     ?>
@@ -526,7 +635,10 @@
                     }
                     ?>
 
-                    <p>TOTAL   RM <?php echo number_format($ttotal, 2); ?></p>
+                    <div class="total-row">
+                        <span class="total-label">TOTAL</span>
+                        <span class="total-price"><?php echo "RM" . number_format($ttotal, 2); ?></span>
+                    </div>
 
                     <div>
 
