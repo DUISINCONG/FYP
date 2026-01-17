@@ -4,6 +4,12 @@
     if (!$conn) {
         die("DB connection failed");
     } 
+
+    $keyword = '';
+    if (isset($_GET['keyword'])) {
+        $keyword = mysqli_real_escape_string($conn, $_GET['keyword']);
+    }
+    $foundResult = false;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,7 +150,6 @@
             padding: 0 20px;
         }
         
-        /* Header Styles - 与旧的完全一致 */
         header {
             background-color: rgba(255, 255, 255, 0.95);
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
@@ -220,7 +225,6 @@
             width: 100%;
         }
         
-        /* VIEW MENU 按钮样式 - 旧的样式 */
         .btn-outline {
             display: inline-block;
             background-color: transparent;
@@ -241,7 +245,6 @@
             transform: translateY(-2px);
         }
         
-        /* Cart button in navbar - 应用旧样式 */
         .cart-btn {
             display: inline-flex;
             align-items: center;
@@ -285,6 +288,72 @@
             color: black;
         }
 
+        .search-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .search-box button {
+            margin-left: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background-color: orange;
+            color: white;
+            cursor: pointer;
+        }
+
+        .nav-category {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .no-result {
+            text-align: center;
+            margin: 120px auto;
+        }
+
+        .no-result img {
+            margin-top: 30px;
+            height: 306px;
+            width: 306px;
+            opacity: 0.8;
+        }
+
+        .no-result p {
+            margin-top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .nav-category::-webkit-scrollbar {
+            display: none;
+        }
+
+        .fixed-search {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .category-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
     </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -325,28 +394,37 @@
         </div>
         <div class="container">
             <nav class="navbar1">   
-                <ul class="nav-links">
-                    <?php
+                <div class="category-bar">
+                    <ul class="nav-links nav-category">
+                        <?php
 
-                    $gettable = mysqli_query($conn, "SELECT * FROM categories");
+                        $gettable = mysqli_query($conn, "SELECT * FROM categories");
 
-                    while ($get = mysqli_fetch_assoc($gettable)) {
-                        $title = $get['category_name'];
-                        $anchor = $get['anchor'];
+                        while ($get = mysqli_fetch_assoc($gettable)) {
+                            $title = $get['category_name'];
+                            $anchor = $get['anchor'];
 
+                            ?>
+                            <li class="padding"><a href="#<?php echo $anchor ?>"><?php echo $title ?></a></li> 
+                            <li></li> 
+                        <?php
+                        }
                         ?>
-                        <div class="padding">
-                      
-                        <li><a href="#<?php echo $anchor ?>"><?php echo $title ?></a></li> 
-                        <li></li> 
-                        </div>
-                    <?php
-                    }
-                    ?>
-                </ul><br>
+
+                    </ul>
+                    <form method="GET" class="search-box">
+                        <input type="text" name="keyword" placeholder="Search food..." value="<?php echo isset($_GET['keyword']) ? htmlspecialchars($_GET['keyword']) : ''; ?>">
+                        <button type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </form>
+                </div>
             </nav>
         </div>
     </header>
+
+    
+
 
     <?php
 
@@ -361,8 +439,13 @@
                     
             <?php
 
-            $tableResult = mysqli_query( $conn, "SELECT * FROM $table WHERE product_status = 'Available'");
-            if($tableResult && mysqli_num_rows($tableResult) > 0){
+            if ($keyword !== '') {
+                $tableResult = mysqli_query($conn,"SELECT * FROM $table WHERE product_status = 'Available' AND product_name LIKE '%$keyword%'");
+            } else {
+                $tableResult = mysqli_query($conn,"SELECT * FROM $table WHERE product_status = 'Available'");
+            }
+            if ($tableResult && mysqli_num_rows($tableResult) > 0) {
+                $foundResult = true;
                 ?>
 
                 <div class="A">
@@ -399,7 +482,12 @@
 
     }
 
-    ?>
+    if ($keyword !== '' && !$foundResult) { ?>
+        <div class="no-result">
+            <img src="backend/uploads/nofound.jpg" alt="No food found">
+            <p>No food found</p>
+        </div>
+    <?php } ?>
 
     <div style="clear: both;"></div>
     <footer>
