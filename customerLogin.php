@@ -368,7 +368,7 @@ if (isset($_POST['loginbutton'])) {
 
             <h2>Welcome to JC Restaurant</h2>
 
-            <img src="backend/uploads/JC_Restaurant_Logo5.png" class="center">
+            <img src="JC_Restaurant_Logo5.png" class="center">
 
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
 
@@ -466,5 +466,6 @@ if (isset($_POST['loginbutton'])) {
 
 </body>
 </html> 
+
 
 
