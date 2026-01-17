@@ -409,7 +409,7 @@
         $ttotal = 0;
         $count = 0;
 
-        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
+        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'incart'");
         while($row = mysqli_fetch_assoc($result)){
         
         $count++;
@@ -464,7 +464,7 @@
 
         <?php
 
-        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
+        $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'incart'");
         while($row = mysqli_fetch_assoc($result)){
 
         ?>
