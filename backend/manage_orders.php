@@ -44,18 +44,23 @@ if (!function_exists('getAdminRole')) {
     }
 }
 
-if (isset($_POST['update_order'])) {
+// 修改：处理完成订单的请求
+if (isset($_POST['complete_order'])) {
     $order_id = mysqli_real_escape_string($conn, $_POST['order_id']);
-    $order_status = mysqli_real_escape_string($conn, $_POST['order_status']);
     
-    $sql = "UPDATE orders SET order_status='$order_status' WHERE order_id='$order_id'";
+    $sql = "UPDATE orders SET order_status='completed' WHERE order_id='$order_id' AND order_status='pending'";
     if(mysqli_query($conn, $sql)) {
-        $success_message = "Order status updated successfully!";
+        if(mysqli_affected_rows($conn) > 0) {
+            $success_message = "Order #$order_id has been marked as completed!";
+        } else {
+            $error_message = "Order #$order_id is not in pending status or does not exist.";
+        }
     } else {
         $error_message = "Error updating order: " . mysqli_error($conn);
     }
 }
 
+// 获取所有订单
 $search = '';
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = mysqli_real_escape_string($conn, $_GET['search']);
@@ -63,28 +68,27 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
             FROM orders o 
             LEFT JOIN customers c ON o.customer_id = c.customer_id 
             WHERE (o.order_id LIKE '%$search%' OR 
+                  o.customer_id LIKE '%$search%' OR 
+                  o.product_id LIKE '%$search%' OR
                   c.customer_name LIKE '%$search%' OR 
-                  c.customer_phone LIKE '%$search%') 
-            AND o.order_status != 'completed' 
+                  c.customer_phone LIKE '%$search%' OR
+                  o.product_name LIKE '%$search%') 
             ORDER BY o.order_date DESC";
 } else {
     $sql = "SELECT o.*, c.customer_name, c.customer_phone 
             FROM orders o 
             LEFT JOIN customers c ON o.customer_id = c.customer_id 
-            WHERE o.order_status != 'completed' 
             ORDER BY o.order_date DESC";
 }
 
 $result = mysqli_query($conn, $sql);
 
+// 修改统计查询，只获取需要的三项
 $stats_sql = "SELECT 
     COUNT(CASE WHEN order_status = 'pending' THEN 1 END) as pending_count,
-    COUNT(CASE WHEN order_status = 'confirmed' THEN 1 END) as confirmed_count,
-    COUNT(CASE WHEN order_status = 'preparing' THEN 1 END) as preparing_count,
-    COUNT(CASE WHEN order_status = 'ready' THEN 1 END) as ready_count,
-    COUNT(*) as total_active
-    FROM orders 
-    WHERE order_status != 'completed'";
+    COUNT(CASE WHEN order_status = 'completed' THEN 1 END) as completed_count,
+    COUNT(*) as total_orders
+    FROM orders";
     
 $stats_result = mysqli_query($conn, $stats_sql);
 $stats = mysqli_fetch_assoc($stats_result);
@@ -99,7 +103,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JC Restaurant - Active Orders</title>
+    <title>JC Restaurant - All Orders</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -242,7 +246,7 @@ if (!$result) {
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -452,12 +456,31 @@ if (!$result) {
             text-align: center;
         }
         
-        .edit-btn {
-            background-color: var(--primary);
+        .complete-btn {
+            background-color: var(--success);
             color: white;
+            margin-top: 20px;
+             margin-bottom: 20px;
         }
         
-        .edit-btn:hover {
+        .complete-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .complete-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .view-btn {
+            background-color: var(--primary);
+            color: white;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .view-btn:hover {
             background-color: var(--primary-dark);
         }
         
@@ -517,8 +540,10 @@ if (!$result) {
             padding: 30px;
             border-radius: 8px;
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
@@ -631,7 +656,7 @@ if (!$result) {
         
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -642,13 +667,29 @@ if (!$result) {
             box-shadow: var(--shadow);
             padding: 20px;
             text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
         
         .stat-value {
             font-size: 32px;
             font-weight: 700;
-            color: var(--primary);
             margin-bottom: 5px;
+        }
+        
+        .stat-pending .stat-value {
+            color: var(--warning);
+        }
+        
+        .stat-completed .stat-value {
+            color: var(--success);
+        }
+        
+        .stat-total .stat-value {
+            color: var(--secondary);
         }
         
         .stat-label {
@@ -656,21 +697,6 @@ if (!$result) {
             color: #7f8c8d;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-        
-        .priority-high {
-            color: var(--danger);
-            font-weight: 600;
-        }
-        
-        .priority-medium {
-            color: var(--warning);
-            font-weight: 600;
-        }
-        
-        .priority-low {
-            color: var(--success);
-            font-weight: 600;
         }
         
         .empty-state {
@@ -683,6 +709,51 @@ if (!$result) {
             font-size: 64px;
             margin-bottom: 20px;
             opacity: 0.5;
+        }
+        
+        .view-details-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .view-details-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .product-image-cell {
+            width: 80px;
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        
+        .modal-image {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        
+        .no-image {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .dash {
+            color: #999;
         }
         
         @media (max-width: 768px) {
@@ -736,6 +807,10 @@ if (!$result) {
                 left: 50%;
                 transform: translateX(-50%);
             }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -778,8 +853,8 @@ if (!$result) {
     
     <div class="container">
         <header>
-            <h1>Active Orders Management</h1>
-            <p class="subtitle">Manage orders that haven't been completed yet</p>
+            <h1>All Orders Management</h1>
+            <p class="subtitle">View and manage all orders</p>
         </header>
         
         <?php if (isset($success_message)): ?>
@@ -791,30 +866,22 @@ if (!$result) {
         <?php endif; ?>
         
         <div class="stats-container">
-            <div class="stat-card">
+            <div class="stat-card stat-pending">
                 <div class="stat-value"><?php echo $stats['pending_count']; ?></div>
                 <div class="stat-label">Pending Orders</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo $stats['confirmed_count']; ?></div>
-                <div class="stat-label">Confirmed</div>
+            <div class="stat-card stat-completed">
+                <div class="stat-value"><?php echo $stats['completed_count']; ?></div>
+                <div class="stat-label">Completed Orders</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo $stats['preparing_count']; ?></div>
-                <div class="stat-label">Preparing</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo $stats['ready_count']; ?></div>
-                <div class="stat-label">Ready</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value"><?php echo $stats['total_active']; ?></div>
-                <div class="stat-label">Total Active</div>
+            <div class="stat-card stat-total">
+                <div class="stat-value"><?php echo $stats['total_orders']; ?></div>
+                <div class="stat-label">Total Orders</div>
             </div>
         </div>
         
         <div class="card">
-            <h2>Active Orders List</h2>
+            <h2>All Orders List</h2>
             
             <div class="filter-container">
                 <div class="filter-group">
@@ -822,9 +889,7 @@ if (!$result) {
                     <select id="statusFilter" onchange="filterOrders()">
                         <option value="">All Statuses</option>
                         <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="preparing">Preparing</option>
-                        <option value="ready">Ready</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
                 
@@ -844,7 +909,7 @@ if (!$result) {
             </div>
             
             <form method="GET" action="" class="search-container">
-                <input type="search" name="search" class="search-input" placeholder="Search by Order ID, Customer Name, or Phone..." value="<?php echo htmlspecialchars($search); ?>">
+                <input type="search" name="search" class="search-input" placeholder="Search by Order ID, Customer Name, Phone, or Product..." value="<?php echo htmlspecialchars($search); ?>">
                 <button type="submit" class="search-btn">Search</button>
                 <?php if (!empty($search)): ?>
                     <a href="manage_orders.php" class="btn btn-secondary">Clear</a>
@@ -857,8 +922,11 @@ if (!$result) {
                     <tr>
                         <th>Order ID</th>
                         <th>Customer</th>
-                        <th>Phone</th>
+                        <th>Product</th>
+                        <th>Product Image</th>
+                        <th>Quantity</th>
                         <th>Order Date</th>
+                        <th>Payment Time</th>
                         <th>Total Amount</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -868,20 +936,67 @@ if (!$result) {
                     <?php while($row = mysqli_fetch_assoc($result)) { 
                         $status = $row['order_status'];
                         $order_date = date('M j, Y g:i A', strtotime($row['order_date']));
+                        
+                        // Payment Time 处理
+                        $payment_time = '----';
+                        if (!empty($row['paymenttime']) && $row['paymenttime'] != '0000-00-00 00:00:00') {
+                            $payment_time = date('M j, Y g:i A', strtotime($row['paymenttime']));
+                        }
+                        
+                        // Customer Name 处理
+                        $customer_name = $row['customer_name'] ?? '----';
+                        
+                        // Product Name 处理
+                        $product_name = $row['product_name'] ?? '----';
+                        
+                        // Product Image 处理
+                        $product_image = $row['product_image'] ?? '';
+                        
+                        // 显示客户电话
+                        $customer_phone = $row['customer_phone'] ?? '----';
                     ?>
                     <tr class="order-row" data-status="<?php echo $status; ?>" data-date="<?php echo date('Y-m-d', strtotime($row['order_date'])); ?>">
                         <td><?php echo $row['order_id']; ?></td>
-                        <td><?php echo $row['customer_name'] ?? 'N/A'; ?></td>
-                        <td><?php echo $row['customer_phone'] ?? 'N/A'; ?></td>
+                        <td>
+                            <strong><?php echo $customer_name; ?></strong><br>
+                            <small>Phone: <?php echo $customer_phone; ?></small><br>
+                            <small>ID: <?php echo $row['customer_id']; ?></small>
+                        </td>
+                        <td><?php echo $product_name; ?><br>
+                            <small>ID: <?php echo $row['product_id']; ?></small>
+                        </td>
+                        <td class="product-image-cell">
+                            <?php if (!empty($product_image)): ?>
+                                <img src="<?php echo htmlspecialchars($product_image); ?>" alt="Product Image" class="product-image">
+                            <?php else: ?>
+                                <span class="no-image">No Image</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo $row['quantity']; ?></td>
                         <td><?php echo $order_date; ?></td>
-                        <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
+                        <td class="dash"><?php echo $payment_time; ?></td>
+                        <td>RM<?php echo number_format($row['total_amount'], 2); ?></td>
                         <td>
                             <span class="status-badge status-<?php echo $status; ?>">
                                 <?php echo ucfirst($status); ?>
                             </span>
                         </td>
                         <td class="actions">
-                            <button class="action-btn edit-btn" onclick="openEditModal('<?php echo $row['order_id']; ?>', '<?php echo $status; ?>')">Update Status</button>
+                            <?php if ($status == 'pending'): ?>
+                                <form method="POST" action="" style="display: inline;">
+                                    <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
+                                    <button type="submit" name="complete_order" class="action-btn complete-btn" onclick="return confirm('Are you sure you want to mark order #<?php echo $row['order_id']; ?> as completed?')">
+                                        <i class="fas fa-check-circle"></i> Complete
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <button class="action-btn complete-btn" disabled title="Order already completed">
+                                    <i class="fas fa-check-circle"></i> Completed
+                                </button>
+                            <?php endif; ?>
+                            <button class="action-btn view-btn" onclick="viewOrderDetails('<?php echo $row['order_id']; ?>', '<?php echo $customer_name; ?>', '<?php echo $customer_phone; ?>', '<?php echo $product_name; ?>', '<?php echo $product_image; ?>', '<?php echo $row['quantity']; ?>', '<?php echo $order_date; ?>', '<?php echo $payment_time; ?>', '<?php echo number_format($row['total_amount'], 2); ?>', '<?php echo $status; ?>')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
                         </td>
                     </tr>
                     <?php } ?>
@@ -892,40 +1007,23 @@ if (!$result) {
             <?php else: ?>
                 <div class="empty-state">
                     <div class="empty-state-icon">📦</div>
-                    <h3>No Active Orders</h3>
-                    <p>All orders have been completed or there are no orders in the system.</p>
+                    <h3>No Orders Found</h3>
+                    <p>There are no orders in the system yet.</p>
                 </div>
             <?php endif; ?>
         </div>
     </div>
     
-    <div class="modal" id="editModal">
+    <div class="modal" id="viewModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Update Order Status - <span id="editOrderId"></span></h2>
-                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                <h2>Order Details - <span id="viewOrderId"></span></h2>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
             </div>
             
-            <form method="POST" action="">
-                <input type="hidden" id="editId" name="order_id">
-                
-                <div class="form-group">
-                    <label for="editOrderStatus">Order Status</label>
-                    <select id="editOrderStatus" name="order_status" required>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="preparing">Preparing</option>
-                        <option value="ready">Ready</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                
-                <div class="btn-group">
-                    <button type="submit" name="update_order" class="btn btn-primary">Update Order</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                </div>
-            </form>
+            <div id="orderDetailsContent">
+                <!-- Order details will be populated here -->
+            </div>
         </div>
     </div>
 
@@ -947,15 +1045,70 @@ if (!$result) {
             }
         }
 
-        function openEditModal(orderId, status) {
-            document.getElementById('editOrderId').textContent = orderId;
-            document.getElementById('editId').value = orderId;
-            document.getElementById('editOrderStatus').value = status;
-            document.getElementById('editModal').style.display = 'flex';
+        function viewOrderDetails(orderId, customerName, customerPhone, productName, productImage, quantity, orderDate, paymentTime, totalAmount, status) {
+            document.getElementById('viewOrderId').textContent = orderId;
+            
+            let imageHtml = '';
+            if (productImage && productImage !== '' && productImage !== '----') {
+                imageHtml = `<img src="${productImage}" alt="Product Image" class="modal-image">`;
+            } else {
+                imageHtml = '<p class="no-image">No image available</p>';
+            }
+            
+            const detailsHtml = `
+                <div class="order-details">
+                    <div class="order-details-grid">
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Order ID</div>
+                            <div>${orderId}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Customer Name</div>
+                            <div>${customerName}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Customer Phone</div>
+                            <div>${customerPhone}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Product Name</div>
+                            <div>${productName}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Quantity</div>
+                            <div>${quantity}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Order Date</div>
+                            <div>${orderDate}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Payment Time</div>
+                            <div class="dash">${paymentTime}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Total Amount</div>
+                            <div>RM${totalAmount}</div>
+                        </div>
+                        <div class="order-detail-item">
+                            <div class="order-detail-label">Status</div>
+                            <span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <div class="order-detail-label">Product Image</div>
+                        ${imageHtml}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('orderDetailsContent').innerHTML = detailsHtml;
+            document.getElementById('viewModal').style.display = 'flex';
         }
 
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
+        function closeViewModal() {
+            document.getElementById('viewModal').style.display = 'none';
         }
 
         function filterOrders() {
@@ -994,7 +1147,7 @@ if (!$result) {
                 if (!document.querySelector('.no-orders-message')) {
                     const messageRow = document.createElement('tr');
                     messageRow.className = 'no-orders-message';
-                    messageRow.innerHTML = `<td colspan="7" style="text-align: center; padding: 40px; color: #7f8c8d;">No orders match the selected filters</td>`;
+                    messageRow.innerHTML = `<td colspan="10" style="text-align: center; padding: 40px; color: #7f8c8d;">No orders match the selected filters</td>`;
                     tableBody.appendChild(messageRow);
                 }
             } else {
@@ -1013,18 +1166,18 @@ if (!$result) {
         }
 
         window.onclick = function(event) {
-            const editModal = document.getElementById('editModal');
-            if (event.target === editModal) {
-                closeEditModal();
+            const viewModal = document.getElementById('viewModal');
+            if (event.target === viewModal) {
+                closeViewModal();
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(today.getDate() - 7);
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(today.getMonth() - 1);
             
-            document.getElementById('dateFrom').valueAsDate = oneWeekAgo;
+            document.getElementById('dateFrom').valueAsDate = oneMonthAgo;
             document.getElementById('dateTo').valueAsDate = today;
             
             filterOrders();
