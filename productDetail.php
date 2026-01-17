@@ -5,66 +5,102 @@
         die("DB connection failed");
     }
 
-    $error = 0;
-    $paymentSuccess = false;
-
-    if (isset($_POST['paymentbutton'])) {
-
-        $address = $_POST['address'];
-        $date = $_POST["date"];
-        $customer_id = $_SESSION['id'];
-        $cnumber = mysqli_real_escape_string($conn, $_POST['cnumber']);
-        $cvv = mysqli_real_escape_string($conn, $_POST['cvv']);
-
-        $stmt = mysqli_prepare($conn,"SELECT 1 FROM dummy_payment_table WHERE bank_number = ? AND cvv = ?");
-        mysqli_stmt_bind_param($stmt, "ss", $cnumber, $cvv);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-
-        if (mysqli_num_rows($result) === 1) {
-
-                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'completed' WHERE customer_id = '$customer_id' and order_status = 'active'");
-
-
-                mysqli_query($conn, "update customers set customer_address = '$address' WHERE customer_id = $customer_id");
-
-                
-                 echo "<script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            showAlert('Payment Successful');
-                        });
-                    </script>";?>
-                
-                <div id="customAlert" class="alert-box">
-                    <p id="alertText"></p>
-                    <button onclick="redirectAfterPayment()">OK</button>
-                </div>
-                
-                <?php
-
-            } else {
-                echo "<script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            showAlert('Invalid Card Details.');
-                        });
-                    </script>";?>
-                
-                <div id="customAlert" class="alert-box1">
-                    <p id="alertText"></p>
-                    <button onclick="redirectAfterPayment1()">OK</button>
-                </div>
-                
-                <?php
-        }
+    if (!isset($_SESSION['id'])) {
+        header("Location: /jc_restaurant/customerLogin.php");
+        exit;
     }
+
+$id = mysqli_real_escape_string($conn, $_GET['id']);
+
+$query = "
+    SELECT * FROM main_food WHERE product_id = '$id'
+    UNION
+    SELECT * FROM snackfood WHERE product_id = '$id'
+    UNION
+    SELECT * FROM coffee WHERE product_id = '$id'
+    UNION
+    SELECT * FROM beverages WHERE product_id = '$id'
+    UNION
+    SELECT * FROM pizza WHERE product_id = '$id'
+";
+
+$result = mysqli_query($conn, $query);
+$data = mysqli_fetch_assoc($result);
+
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-            <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="productdetailcss.css"/>
+    <title>JC Restaurant | Fine Dining Experience</title>
+    <style>
+        div.down {
+            position: absolute;
+            top: 580px;
+            right: 390px;
+        }
+        form {
+            margin-top: 15px;
+        }
+
+        button[type="button"] {
+            height: 50px;
+            width: 50px;
+            border: 1px solid orange;
+            background-color: #fff;
+            color: orange;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 1s ease;
+            border-radius: 50%;
+        }
+
+        button[type="button"]:hover {
+            background-color: orange;
+            color: #fff;
+        }
+
+        #qty {
+            width: 377px;
+            height: 50px;
+            border: 1px solid orange;
+            outline: none;
+            font-size: 16px;
+            margin: 0 5px;
+            border-radius: 36px;
+        }
+
+        button[type="submit"] {
+            height: 50px;
+            width: 500px;
+            margin-top: 15px;
+            padding: 12px 25px;
+            background-color: orange;
+            color: #fff;
+            border: none;
+            border-radius: 36px;
+            font-size: 19px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 1s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: orange;
+        }
+
+        button:focus,
+        input:focus {
+            outline: none;
+        }
+
         .A {
-            margin-top: 150px;
             margin-left: 20%;
             margin-right: 20%;
             float: left;
@@ -75,6 +111,11 @@
             background-color: var(--secondary);
             color: white;
             padding: 60px 0 20px 0;
+            position: fixed;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
         }
         
         .footer-content {
@@ -340,102 +381,7 @@
             color: black;
         }
 
-        .er {
-            color: red;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .alert-box {
-            display: none;
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #14a14f, #14a14f);
-            color: #ffffff;
-            padding: 20px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            z-index: 9999;
-            min-width: 260px;
-            animation: slideDown 0.5s ease;
-        }
-
-        .alert-box button {
-            margin-top: 14px;
-            padding: 8px 26px;
-            border: none;
-            background: #ffffff;
-            color: #4f9f76;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .alert-box button:hover {
-            background: #f2faf6;
-            transform: translateY(-1px);
-        }
-
-        .alert-box1 {
-            display: none;
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #c01a1a, #c01a1a);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            z-index: 9999;
-            min-width: 260px;
-            animation: slideDown 0.5s ease;
-        }
-
-        .alert-box1 button {
-            margin-top: 14px;
-            padding: 8px 26px;
-            border: none;
-            background: #ffffff;
-            color: #c94a4a;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 999px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .alert-box1 button:hover {
-            background: #fff5f5;
-            transform: translateY(-1px);
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -15px);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
-        }
-
     </style>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JC Restaurant | Fine Dining Experience</title>
 </head>
 <body>
 
@@ -466,100 +412,146 @@
         </div>
     </header>
 
-    <div class="A">
+    <div style="margin-left: 20%; margin-right: 20%; margin-top: 100px;">
+        <img style="height: 600px; width: 600px; float: left; margin: 20px; border-radius: 36px;" src="<?php echo "backend/" . $data['product_image']; ?>" alt="Food Image">
+        <h1 style="padding: 20px 0px 0px 20px; font-size: 30px; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; font-weight: 600;"><?php echo $data['product_name']; ?></h1>
+        <h1 style="font-size: 26px; font-family: 'Montserrat', Arial, sans-serif; font-weight: 700; color: orange;">RM <?php echo $data['product_price']; ?></h1>
+        <p style="font-size: 19px; font-family: 'Arial', 'Helvetica Neue', 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #555; text-align: justify;"><?php echo $data['product_description']; ?></p>
 
-        <div>
-            <h2>Deliver to</h2>
-        </div>
+        <div class="down">
 
-        <?php
+            <form method="post">
 
-        $customerid = $_SESSION['id'];
-        $ttotal = 0;
+                <button type="button" onclick="subtract()">-</button>
 
-        $result = mysqli_query($conn, "select * from customers where customer_id = '$customerid'");
-        while($row = mysqli_fetch_assoc($result)){
+                <input style="text-align:center;" type="text" id="qty" name="quantity"value="1" oninput="validNumber(this)">
 
-        ?>
-        <div>	
-            <form action="" method="post">
+                <button type="button" onclick="add()">+</button>
 
-                <div>
-                    <div class="address">
-                        <input type="text" id="address" name="address" value="<?php echo $row['customer_address']; ?>" required>
-                    </div>
+                <input type="hidden" name="product_id" value="<?php echo $data['product_id']; ?>">
+                <input type="hidden" name="product_name" value="<?php echo $data['product_name']; ?>">
+                <input type="hidden" name="product_image" value="<?php echo $data['product_image']; ?>">
+                <input type="hidden" name="status" value="incart">
+                <input type="hidden" name="date" value="<?php echo date("Y-m-d h:i:sa") ?>">
 
-                </div>
-
-                <div>
-                    <h2>Payment Method(Credit Card)</h2>
-                </div>
-
-                <div>
-                    <div>
-                        <div>
-                        <label for="cnumber">Credit Number :</label><br>
-                        </div>
-                        <input type="text" id="cnumber" name="cnumber" required>
-                    </div>
-
-                    <div>
-                        <div>
-                        <label for="cvv">CVV :</label><br>
-                        </div>
-                        <input type="password" id="cvv" name="cvv" required>
-                    </div>
-                    <input type="hidden" name="date" value="<?php echo date("Y-m-d h:i:sa") ?>">
-                    <br>
-
-                    <?php
-
-                    $result1 = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'active'");
-                    while($row1 = mysqli_fetch_assoc($result1)){
-
-                    ?>
-
-                    <?php $row1['total_amount']; ?>
-                    <?php $ttotal += $row1['total_amount']; ?>
-
-                    <?php
-                    }
-                    ?>
-
-                    <p>TOTAL   RM <?php echo number_format($ttotal, 2); ?></p>
-
-                    <div>
-
-                    <input type="submit" name="paymentbutton" value="Proceed">
-
-                    </div>
-
-                </div>
+                <br><button type="submit" id="addToCartBtn" name="addToCartBtn">add to cart - RM </button>
 
             </form>
 
         </div>
 
-        <?php
-        }
-        ?>
-
     </div>
 
+    <?php
+
+    if(isset($_POST["addToCartBtn"])){
+
+        $customer_id = $_SESSION['id'];
+        $product_id = $_POST["product_id"];
+        $product_name = $_POST["product_name"];
+        $product_image = $_POST["product_image"];
+        $status = $_POST["status"];
+        $date = $_POST["date"];
+        $qty = $_POST["quantity"];
+        $pprice = $data['product_price'];
+        $totalamount = $pprice * $qty;
+        $checkqty = 0;
+        $newqty = 0;
+        $found = false;
+
+        $result = mysqli_query($conn, "select * from orders where customer_id = '$customer_id' and order_status = 'incart'");
+        while($row = mysqli_fetch_assoc($result)){
+
+            if($row['product_id'] == $product_id){
+                $found = true;
+                if($row['quantity'] <= 20){
+                    $checkqty = $row['quantity'] + $qty;
+                    while($checkqty > 20){
+                        $checkqty--;
+                        $newqty++;
+                    }
+                    $totalamount = $pprice * $checkqty;
+                    mysqli_query($conn, "update orders set order_date = '$date', quantity = '$checkqty', total_amount = '$totalamount' where order_id = '{$row['order_id']}'");
+                    if($newqty > 0){
+                        $totalamount = $pprice * $newqty;
+                        mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$newqty', '$totalamount')");
+                    }
+                }
+                echo "<script>document.addEventListener('DOMContentLoaded', function () {showAlert('{$data['product_name']} has been added to cart');});</script>";?>
+
+                <div id="customAlert" class="alert-box">
+                    <p id="alertText"></p>
+                </div>
+                <?php
+                break;
+            }
+
+        }
+
+        if(!$found){
+
+            mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$qty', '$totalamount')");
+
+            ?>
+            <?php
+                    
+            echo "<script>document.addEventListener('DOMContentLoaded', function () {showAlert('{$data['product_name']} has been added to cart');});</script>";?>
+                
+            <div id="customAlert" class="alert-box">
+                <p id="alertText"></p>
+            </div>
+
+            <?php
+
+        }
+    }
+
+    ?> 
+
     <script>
-    function showAlert(message) {
-        const alertBox = document.getElementById("customAlert");
-        document.getElementById("alertText").innerText = message;
-        alertBox.style.display = "block";
-    }
+        const price = <?php echo $data['product_price']; ?>;
+        const qtyInput = document.getElementById("qty");
 
-    function redirectAfterPayment() {
-        window.location.href = "homepage.html"; 
-    }
+        function updateTotal() {
+            let qty = parseInt(qtyInput.value);
+            let total = price * qty;
+            addToCartBtn.innerText = "add to cart - RM " + total.toFixed(2);
+        }
 
-    function redirectAfterPayment1() {
-        window.location.href = "payment.php"; 
-    }
+        function validNumber(input) {  
+            input.value = input.value.replace(/[^0-9]/g, '');
+            if (input.value === '') input.value = 1;
+            if (input.value === '0') input.value = 1;
+            if (input.value === '21') input.value = 20;
+            updateTotal();
+        }
+
+        function subtract() {
+            let qty = document.getElementById("qty");
+            let value = parseInt(qty.value);
+            if (value > 1) qty.value = value - 1;
+            updateTotal();
+        }
+
+        function add() {
+            let qty = document.getElementById("qty");
+            let value = parseInt(qty.value);
+            if (value < 20) qty.value = value + 1;
+            updateTotal();
+        }
+
+        function showAlert(message) {
+            const alertBox = document.getElementById("customAlert");
+            document.getElementById("alertText").innerText = message;
+            alertBox.style.display = "block";
+
+            setTimeout(() => {
+                alertBox.style.display = "none";
+            }, 2000);
+        }
+
+        updateTotal();
     </script>
+    
 </body>
 </html>
