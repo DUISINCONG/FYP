@@ -23,7 +23,7 @@
 
         if (mysqli_num_rows($result) === 1) {
 
-                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'completed' WHERE customer_id = '$customer_id' and order_status = 'incart'");
+                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'pending' WHERE customer_id = '$customer_id' and order_status = 'incart'");
 
 
                 mysqli_query($conn, "update customers set customer_address = '$address' WHERE customer_id = $customer_id");
