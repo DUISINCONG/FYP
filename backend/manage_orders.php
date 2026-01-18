@@ -44,16 +44,16 @@ if (!function_exists('getAdminRole')) {
     }
 }
 
-// 修改：处理完成订单的请求
+// 处理完成订单的请求
 if (isset($_POST['complete_order'])) {
     $order_id = mysqli_real_escape_string($conn, $_POST['order_id']);
     
-    $sql = "UPDATE orders SET order_status='completed' WHERE order_id='$order_id' AND order_status='pending'";
+    $sql = "UPDATE orders SET order_status='completed' WHERE order_id='$order_id' AND (order_status='pending' OR order_status='incart')";
     if(mysqli_query($conn, $sql)) {
         if(mysqli_affected_rows($conn) > 0) {
             $success_message = "Order #$order_id has been marked as completed!";
         } else {
-            $error_message = "Order #$order_id is not in pending status or does not exist.";
+            $error_message = "Order #$order_id is not in pending/incart status or does not exist.";
         }
     } else {
         $error_message = "Error updating order: " . mysqli_error($conn);
@@ -83,10 +83,11 @@ if (isset($_GET['search']) && !empty($_GET['search'])) {
 
 $result = mysqli_query($conn, $sql);
 
-// 修改统计查询，只获取需要的三项
+// 统计查询
 $stats_sql = "SELECT 
     COUNT(CASE WHEN order_status = 'pending' THEN 1 END) as pending_count,
     COUNT(CASE WHEN order_status = 'completed' THEN 1 END) as completed_count,
+    COUNT(CASE WHEN order_status = 'incart' THEN 1 END) as incart_count,
     COUNT(*) as total_orders
     FROM orders";
     
@@ -425,17 +426,37 @@ if (!$result) {
         th, td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid var(--border);
         }
         
         th {
             background-color: var(--light);
             font-weight: 600;
             color: var(--secondary);
+            border-bottom: 2px solid #333;
         }
         
         tr:hover {
             background-color: #f8f9fa;
+        }
+        
+        /* 订单之间的黑色分隔线 */
+        .order-row-divider {
+            border-bottom: 1px solid #333;
+        }
+        
+        /* 浅色分隔线 */
+        .order-row-divider-light {
+            border-bottom: 1px solid #ccc;
+        }
+        
+        /* 虚线分隔线 */
+        .order-row-divider-dashed {
+            border-bottom: 1px dashed #333;
+        }
+        
+        /* 无分隔线 */
+        .order-row-no-divider {
+            border-bottom: none;
         }
         
         .actions {
@@ -497,29 +518,14 @@ if (!$result) {
             color: var(--warning);
         }
         
-        .status-confirmed {
-            background-color: rgba(52, 152, 219, 0.2);
-            color: var(--primary);
-        }
-        
-        .status-preparing {
+        .status-incart {
             background-color: rgba(155, 89, 182, 0.2);
             color: #9b59b6;
-        }
-        
-        .status-ready {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: var(--success);
         }
         
         .status-completed {
             background-color: rgba(149, 165, 166, 0.2);
             color: #7f8c8d;
-        }
-        
-        .status-cancelled {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: var(--danger);
         }
         
         .modal {
@@ -656,9 +662,15 @@ if (!$result) {
         
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         .stat-card {
@@ -682,6 +694,10 @@ if (!$result) {
         
         .stat-pending .stat-value {
             color: var(--warning);
+        }
+        
+        .stat-incart .stat-value {
+            color: #9b59b6;
         }
         
         .stat-completed .stat-value {
@@ -807,10 +823,6 @@ if (!$result) {
                 left: 50%;
                 transform: translateX(-50%);
             }
-            
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -870,6 +882,10 @@ if (!$result) {
                 <div class="stat-value"><?php echo $stats['pending_count']; ?></div>
                 <div class="stat-label">Pending Orders</div>
             </div>
+            <div class="stat-card stat-incart">
+                <div class="stat-value"><?php echo $stats['incart_count']; ?></div>
+                <div class="stat-label">In Cart</div>
+            </div>
             <div class="stat-card stat-completed">
                 <div class="stat-value"><?php echo $stats['completed_count']; ?></div>
                 <div class="stat-label">Completed Orders</div>
@@ -889,6 +905,7 @@ if (!$result) {
                     <select id="statusFilter" onchange="filterOrders()">
                         <option value="">All Statuses</option>
                         <option value="pending">Pending</option>
+                        <option value="incart">In Cart</option>
                         <option value="completed">Completed</option>
                     </select>
                 </div>
@@ -934,7 +951,7 @@ if (!$result) {
                 </thead>
                 <tbody>
                     <?php while($row = mysqli_fetch_assoc($result)) { 
-                        $status = $row['order_status'];
+                        $status = strtolower($row['order_status']); // 转换为小写以确保匹配
                         $order_date = date('M j, Y g:i A', strtotime($row['order_date']));
                         
                         // Payment Time 处理
@@ -955,7 +972,7 @@ if (!$result) {
                         // 显示客户电话
                         $customer_phone = $row['customer_phone'] ?? '----';
                     ?>
-                    <tr class="order-row" data-status="<?php echo $status; ?>" data-date="<?php echo date('Y-m-d', strtotime($row['order_date'])); ?>">
+                    <tr class="order-row order-row-divider" data-status="<?php echo $status; ?>" data-date="<?php echo date('Y-m-d', strtotime($row['order_date'])); ?>">
                         <td><?php echo $row['order_id']; ?></td>
                         <td>
                             <strong><?php echo $customer_name; ?></strong><br>
@@ -982,7 +999,7 @@ if (!$result) {
                             </span>
                         </td>
                         <td class="actions">
-                            <?php if ($status == 'pending'): ?>
+                            <?php if ($status == 'pending' || $status == 'incart'): ?>
                                 <form method="POST" action="" style="display: inline;">
                                     <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
                                     <button type="submit" name="complete_order" class="action-btn complete-btn" onclick="return confirm('Are you sure you want to mark order #<?php echo $row['order_id']; ?> as completed?')">
