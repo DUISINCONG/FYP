@@ -124,6 +124,11 @@ if (isset($_POST['add_category'])) {
     $category_name = mysqli_real_escape_string($conn, $_POST['category_name']);
     $category_prefix = mysqli_real_escape_string($conn, $_POST['category_prefix']);
     $table_name = strtolower(str_replace(' ', '_', $category_name));
+    $anchor = strtolower(substr($category_name, 0, 2));
+
+    if (strlen($anchor) < 2) {
+        $anchor = strtolower($category_name[0] . $category_name[0]);
+    }
     
     $check_prefix = "SELECT * FROM categories WHERE category_prefix = '$category_prefix'";
     $prefix_result = mysqli_query($conn, $check_prefix);
@@ -131,8 +136,8 @@ if (isset($_POST['add_category'])) {
     if ($prefix_result && mysqli_num_rows($prefix_result) > 0) {
         $error_message = "Error: Category prefix '$category_prefix' already exists!";
     } else {
-        $insert_sql = "INSERT INTO categories (category_name, category_prefix, table_name) 
-                       VALUES ('$category_name', '$category_prefix', '$table_name')";
+        $insert_sql = "INSERT INTO categories (category_name, category_prefix, table_name, anchor) 
+                       VALUES ('$category_name', '$category_prefix', '$table_name', '$anchor')";
         
         if (mysqli_query($conn, $insert_sql)) {
             $create_table = "CREATE TABLE $table_name (
