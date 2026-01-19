@@ -313,14 +313,15 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#">ABOUT</a></li>
+                    <li><a href="homepage.html#about">ABOUT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
-                    <li><a href="#">CONTACT</a></li>
+                    <li><a href="contactus.php">CONTACT</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">My Order</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -353,7 +354,7 @@
             <div class="cart-item">
 
                 <div class="cart-img">
-                    <img src="<?php echo $row['product_image']; ?>">
+                    <img src="<?php echo "backend/" . $row['product_image']; ?>">
                 </div>
 
                 <div class="cart-name">
@@ -387,7 +388,7 @@
     if($count === 0){
             ?>
             <div style="clear: both;"></div>
-            <h1 style="text-align: center; padding-top: 120px;">You have not yet completed any payment.</h1>
+            <h1 style="text-align: center; padding-top: 120px;">You have not yet completed an order.</h1>
         <?php
         }
         ?>
