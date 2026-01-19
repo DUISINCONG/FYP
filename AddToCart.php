@@ -378,7 +378,7 @@
                     JC Restaurant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="homepage.html" class="active">HOME</a></li>
+                    <li><a href="homepage.html">HOME</a></li>
                     <li><a href="aboutus.php">ABOUT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
                     <li><a href="contactus.php">CONTACT</a></li>
