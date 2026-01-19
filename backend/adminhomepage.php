@@ -595,27 +595,27 @@ require_once 'get_counts.php';
 
             <div class="product-breakdown">
                 <h3>Product Categories</h3>
-                <div class="product-categories">
-                    <div class="product-category">
-                        <div class="count"><?php echo $mainFoodCount; ?></div>
-                        <div class="label">Main Food</div>
-                    </div>
-                    <div class="product-category">
-                        <div class="count"><?php echo $pizzaCount; ?></div>
-                        <div class="label">Pizza</div>
-                    </div>
-                    <div class="product-category">
-                        <div class="count"><?php echo $coffeeCount; ?></div>
-                        <div class="label">Coffee</div>
-                    </div>
-                    <div class="product-category">
-                        <div class="count"><?php echo $beveragesCount; ?></div>
-                        <div class="label">Beverages</div>
-                    </div>
-                    <div class="product-category">
-                        <div class="count"><?php echo $snackfoodCount; ?></div>
-                        <div class="label">Snack Food</div>
-                    </div>
+                <div class="product-categories" id="productCategories">
+                    <?php 
+                    if (!empty($categoryCounts)): 
+                        $colors = ['#ff9800', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722', '#795548', '#607D8B'];
+                        $colorIndex = 0;
+                        
+                        foreach ($categoryCounts as $categoryName => $count): 
+                            $color = $colors[$colorIndex % count($colors)];
+                            $colorIndex++;
+                    ?>
+                        <div class="product-category">
+                            <div class="count" style="color: <?php echo $color; ?>;"><?php echo $count; ?></div>
+                            <div class="label"><?php echo htmlspecialchars($categoryName); ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="product-category">
+                            <div class="count">0</div>
+                            <div class="label">No Categories</div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -703,26 +703,6 @@ require_once 'get_counts.php';
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const statValues = document.querySelectorAll('.stat-value, .product-category .count');
-        
-        statValues.forEach(stat => {
-            const target = parseFloat(stat.textContent);
-            let current = 0;
-            const increment = target / 50;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    stat.textContent = Math.round(target);
-                    clearInterval(timer);
-                } else {
-                    stat.textContent = Math.ceil(current);
-                }
-            }, 30);
-        });
-    });
-
-
     function checkNewOrders() {
         fetch('check_new_orders.php')
             .then(response => {
@@ -758,7 +738,6 @@ require_once 'get_counts.php';
             countElement.style.display = 'inline-flex';
             
             if (newOrderCount > previousCount && sessionStorage.getItem('firstLoad') !== 'true') {
-                playNotificationSound();
             }
             
             sessionStorage.setItem('newOrderCount', newOrderCount.toString());
@@ -812,7 +791,6 @@ require_once 'get_counts.php';
             
             link.addEventListener('click', function(e) {
                 clearOrderNotifications();
-                
             });
         });
     }
@@ -844,10 +822,10 @@ require_once 'get_counts.php';
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const statValues = document.querySelectorAll('.stat-value, .product-category .count');
+        const statValues = document.querySelectorAll('.stat-value');
         
         statValues.forEach(stat => {
-            const target = parseFloat(stat.textContent);
+            const target = parseFloat(stat.textContent) || 0;
             let current = 0;
             const increment = target / 50;
             const timer = setInterval(() => {
@@ -861,12 +839,29 @@ require_once 'get_counts.php';
             }, 30);
         });
         
+        const productCounts = document.querySelectorAll('.product-category .count');
+        
+        productCounts.forEach(countElement => {
+            const target = parseFloat(countElement.textContent) || 0;
+            let current = 0;
+            const increment = target / 30;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    countElement.textContent = Math.round(target);
+                    clearInterval(timer);
+                } else {
+                    countElement.textContent = Math.ceil(current);
+                }
+            }, 40);
+        });
+        
         initOrderNotificationSystem();
     });
 
     window.addEventListener('beforeunload', function() {
         sessionStorage.setItem('lastCheckOnUnload', Date.now().toString());
     });
-</script>
+    </script>
 </body>
 </html>
