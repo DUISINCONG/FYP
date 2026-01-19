@@ -36,7 +36,7 @@ $data = mysqli_fetch_assoc($result);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="productdetailcss.css"/>
-    <title>JC Restaurant | Fine Dining Experience</title>
+    <title>Menu | JC Restaurant</title>
     <style>
         div.down {
             position: absolute;
@@ -352,10 +352,14 @@ $data = mysqli_fetch_assoc($result);
             font-family: "Times New Roman", Times, serif;
         }
         
-        .cart-btn:hover {
+        .nav-links .cart-btn:hover {
             background-color: orange;
             color: white;
             transform: translateY(-2px);
+        }
+
+        .nav-links .cart-btn::after {
+            display: none;
         }
         
         .cart-btn i {
@@ -393,15 +397,16 @@ $data = mysqli_fetch_assoc($result);
                     JC Restaurant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#">ABOUT</a></li>
-                    <li><a href="menuPage.php">MENU</a></li>
-                    <li><a href="#">CONTACT</a></li>
+                    <li><a href="homepage.html">HOME</a></li>
+                    <li><a href="aboutus.php">ABOUT</a></li>
+                    <li><a href="contactus.php">CONTACT</a></li>
+                    <li><a href="menuPage.php" class="active">MENU</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">ORDER</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -474,7 +479,7 @@ $data = mysqli_fetch_assoc($result);
                     mysqli_query($conn, "update orders set order_date = '$date', quantity = '$checkqty', total_amount = '$totalamount' where order_id = '{$row['order_id']}'");
                     if($newqty > 0){
                         $totalamount = $pprice * $newqty;
-                        mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$newqty', '$totalamount')");
+                        mysqli_query($conn,"insert into orders (customer_id, product_id, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$status', '$date', '$newqty', '$totalamount')");
                     }
                 }
                 echo "<script>document.addEventListener('DOMContentLoaded', function () {showAlert('{$data['product_name']} has been added to cart');});</script>";?>
@@ -490,7 +495,7 @@ $data = mysqli_fetch_assoc($result);
 
         if(!$found){
 
-            mysqli_query($conn,"insert into orders (customer_id, product_id, product_name, product_image, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$product_name', '$product_image', '$status', '$date', '$qty', '$totalamount')");
+            mysqli_query($conn,"insert into orders (customer_id, product_id, order_status, order_date, quantity, total_amount) values ('$customer_id', '$product_id', '$status', '$date', '$qty', '$totalamount')");
 
             ?>
             <?php
