@@ -23,7 +23,44 @@
 
         if (mysqli_num_rows($result) === 1) {
 
-                mysqli_query($conn, "update orders set paymenttime = '$date', order_status = 'pending' WHERE customer_id = '$customer_id' and order_status = 'incart'");
+            $result = mysqli_query($conn, "select * from orders where customer_id = '$customer_id' and order_status = 'incart'");
+
+            $tables = [];
+            $gettable = mysqli_query($conn, "SELECT table_name FROM categories");
+
+            while ($get = mysqli_fetch_assoc($gettable)) {
+                $tables[] = $get['table_name'];
+            }
+
+            while($row = mysqli_fetch_assoc($result)){
+            
+                $product_id = $row['product_id']; 
+                $order_id = $row['order_id']; 
+
+                $unionParts = [];
+
+                foreach ($tables as $table) {
+                    $unionParts[] = "
+                        SELECT product_name, product_image 
+                        FROM $table 
+                        WHERE product_id = '$product_id'
+                    ";
+                }
+
+
+                $query1 = implode(" UNION ", $unionParts);
+
+                $result1 = mysqli_query($conn, $query1);
+                $data1 = mysqli_fetch_assoc($result1);
+
+                if (!$data1) {
+                    continue;
+                }
+
+                $name = $data1['product_name'];
+                $image = $data1['product_image'];
+
+                mysqli_query($conn, "update orders set product_name = '$name', product_image = '$image', paymenttime = '$date', order_status = 'pending' WHERE order_id = '$order_id' and order_status = 'incart'");
 
 
                 mysqli_query($conn, "update customers set customer_address = '$address' WHERE customer_id = $customer_id");
@@ -41,8 +78,9 @@
                 </div>
                 
                 <?php
+            }
 
-            } else {
+        } else {
                 echo "<script>
                         document.addEventListener('DOMContentLoaded', function () {
                             showAlert('Invalid Card Details.');
@@ -312,10 +350,14 @@
             font-family: "Times New Roman", Times, serif;
         }
         
-        .cart-btn:hover {
+        .nav-links .cart-btn:hover {
             background-color: orange;
             color: white;
             transform: translateY(-2px);
+        }
+
+        .nav-links .cart-btn::after {
+            display: none;
         }
         
         .cart-btn i {
@@ -541,7 +583,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JC Restaurant | Fine Dining Experience</title>
+    <title>Payment | JC Restaurant</title>
 </head>
 <body>
 
@@ -553,15 +595,16 @@
                     JC Restaurant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#">ABOUT</a></li>
+                    <li><a href="homepage.html">HOME</a></li>
+                    <li><a href="aboutus.php">ABOUT</a></li>
+                    <li><a href="contactus.php">CONTACT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
-                    <li><a href="#">CONTACT</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">ORDER</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
