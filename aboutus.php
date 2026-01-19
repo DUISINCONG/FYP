@@ -644,8 +644,9 @@
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">My Order</a></li>
                     <li>
-                        <a href="#" class="cart-btn">
+                        <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
                         </a>
                     </li>
@@ -851,10 +852,6 @@
                     <h3>JC Restaurant</h3>
                     <p>Experience fine dining at its best with our exquisite menu and unparalleled service.</p>
                     <div class="social-icons">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-tripadvisor"></i></a>
                     </div>
                 </div>
                 <div class="footer-column">
@@ -865,15 +862,17 @@
                         <li><a href="contactus.php">Contact</a></li>
                         <li><a href="menuPage.php">Menu</a></li>
                         <li><a href="/jc_restaurant/customer_profile/edit-profile.php">Edit Profile</a></li>
+                        <li><a href="myorder.php">My Order</a></li>
+                        <li><a href="AddToCart.php">My Cart</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Contact Info</h3>
                     <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt"></i><a href="#">123 Restaurant St, Food City</a></li>
-                        <li><i class="fas fa-phone"></i><a href="#">+1 234 567 8900</a></li>
-                        <li><i class="fas fa-envelope"></i><a href="#">info@jcrestaurant.com</a></li>
-                        <li><i class="fas fa-clock"></i><a href="#">Mon-Sun: 11AM - 11PM</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i>123 Restaurant St, Food City</a></li>
+                        <li><i class="fas fa-phone"></i>+1 234 567 8900</a></li>
+                        <li><i class="fas fa-envelope"></i>info@jcrestaurant.com</a></li>
+                        <li><i class="fas fa-clock"></i>Mon-Sun: 11AM - 11PM</a></li>
                     </ul>
                 </div>
             </div>
