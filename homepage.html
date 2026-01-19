@@ -146,10 +146,14 @@
             font-family: "Times New Roman", Times, serif;
         }
         
-        .cart-btn:hover {
+        .nav-links .cart-btn:hover {
             background-color: orange;
             color: white;
             transform: translateY(-2px);
+        }
+
+        .nav-links .cart-btn::after {
+            display: none;
         }
         
         .cart-btn i {
@@ -630,15 +634,15 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#about">ABOUT</a></li>
-                    <li><a href="menuPage.php">MENU</a></li>
+                    <li><a href="aboutus.php">ABOUT</a></li>
                     <li><a href="contactus.php">CONTACT</a></li>
+                    <li><a href="menuPage.php">MENU</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
-                    <li><a href="myorder.php">My Order</a></li>
+                    <li><a href="myorder.php">ORDER</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -795,11 +799,11 @@
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
                         <li><a href="homepage.html">Home</a></li>
-                        <li><a href="#about">About Us</a></li>
+                        <li><a href="aboutus.php">About Us</a></li>
                         <li><a href="contactus.php">Contact</a></li>
                         <li><a href="menuPage.php">Menu</a></li>
                         <li><a href="/jc_restaurant/customer_profile/edit-profile.php">Edit Profile</a></li>
-                        <li><a href="myorder.php">My Order</a></li>
+                        <li><a href="myorder.php">Order</a></li>
                         <li><a href="AddToCart.php">My Cart</a></li>
                     </ul>
                 </div>
