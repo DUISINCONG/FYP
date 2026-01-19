@@ -283,10 +283,14 @@ if (isset($_POST['loginbutton'])) {
             font-family: "Times New Roman", Times, serif;
         }
         
-        .cart-btn:hover {
+        .nav-links .cart-btn:hover {
             background-color: orange;
             color: white;
             transform: translateY(-2px);
+        }
+
+        .nav-links .cart-btn::after {
+            display: none;
         }
         
         .cart-btn i {
@@ -302,36 +306,33 @@ if (isset($_POST['loginbutton'])) {
         .nav-links li a {
             font-weight: bold;
         }
+
+        .fo {
+            display: block;
+            text-align: center;
+            color: black;
+            font-size: 16px;
+            text-decoration: none;
+            font-family: "Inter", sans-serif;
+        }
+
+        .fo:hover {
+            text-decoration: underline;
+        }
+
+        .er {
+            color: red;
+            text-align: center;
+            font-size: 18px;
+        }
     </style>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   
-  <title>JC Restaurant | Fine Dining Experience</title>
+  <title>Login | JC Restaurant</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="clogincss.css"/>
-  <style>
-
-    .fo {
-        display: block;
-        text-align: center;
-        color: black;
-        font-size: 16px;
-        text-decoration: none;
-        font-family: "Inter", sans-serif;
-    }
-
-    .fo:hover {
-        text-decoration: underline;
-    }
-
-    .er {
-        color: red;
-        text-align: center;
-        font-size: 18px;
-    }
-
-  </style>
 </head>
 <body>
 
@@ -344,14 +345,15 @@ if (isset($_POST['loginbutton'])) {
                 </a>
                 <ul class="nav-links">
                     <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#">ABOUT</a></li>
+                    <li><a href="aboutus.php">ABOUT</a></li>
+                    <li><a href="contactus.pbp">CONTACT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
-                    <li><a href="#">CONTACT</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">ORDER</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -368,7 +370,7 @@ if (isset($_POST['loginbutton'])) {
 
             <h2>Welcome to JC Restaurant</h2>
 
-            <img src="JC_Restaurant_Logo5.png" class="center">
+            <img src="backend/uploads/JC_Restaurant_Logo5.png" class="center">
 
             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
 
@@ -431,30 +433,27 @@ if (isset($_POST['loginbutton'])) {
                     <h3>JC Restaurant</h3>
                     <p>Experience fine dining at its best with our exquisite menu and unparalleled service.</p>
                     <div class="social-icons">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-tripadvisor"></i></a>
                     </div>
                 </div>
                 <div class="footer-column">
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Menu</a></li>
-                        <li><a href="#">Edit Profile</a></li>
-                        <li><a href="#">My Cart</a></li>
+                        <li><a href="homepage.html">Home</a></li>
+                        <li><a href="aboutus.php">About Us</a></li>
+                        <li><a href="contactus.php">Contact</a></li>
+                        <li><a href="menuPage.php">Menu</a></li>
+                        <li><a href="/jc_restaurant/customer_profile/edit-profile.php">Edit Profile</a></li>
+                        <li><a href="myorder.php">Order</a></li>
+                        <li><a href="AddToCart.php">My Cart</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Contact Info</h3>
                     <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt"></i><a href="#">123 Restaurant St, Food City</a></li>
-                        <li><i class="fas fa-phone"></i><a href="#">+1 234 567 8900</a></li>
-                        <li><i class="fas fa-envelope"></i><a href="#">info@jcrestaurant.com</a></li>
-                        <li><i class="fas fa-clock"></i><a href="#">Mon-Sun: 11AM - 11PM</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i>123 Restaurant St, Food City</a></li>
+                        <li><i class="fas fa-phone"></i>+1 234 567 8900</a></li>
+                        <li><i class="fas fa-envelope"></i>info@jcrestaurant.com</a></li>
+                        <li><i class="fas fa-clock"></i>Mon-Sun: 11AM - 11PM</a></li>
                     </ul>
                 </div>
             </div>
@@ -466,6 +465,3 @@ if (isset($_POST['loginbutton'])) {
 
 </body>
 </html> 
-
-
-
