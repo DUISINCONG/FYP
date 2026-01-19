@@ -1630,30 +1630,10 @@ if (isset($_GET['export'])) {
             </div>
             
             <div class="product-stat-card">
-                <div class="stat-title">Worst Selling Product</div>
-                <div class="stat-content worst-selling">
-                    <?php echo isset($stats['worst_selling_product']) && !empty($stats['worst_selling_product']) ? $stats['worst_selling_product'] : 'No data'; ?>
-                </div>
-            </div>
-            
-            <div class="product-stat-card">
                 <div class="stat-title">Best Selling Category</div>
                 <div class="stat-content best-selling">
                     <?php echo isset($stats['best_selling_category']) && !empty($stats['best_selling_category']) ? $stats['best_selling_category'] : 'No data'; ?>
                 </div>
-            </div>
-            
-            <div class="product-stat-card">
-                <div class="stat-title">Worst Selling Category</div>
-                <div class="stat-content worst-selling">
-                    <?php echo isset($stats['worst_selling_category']) && !empty($stats['worst_selling_category']) ? $stats['worst_selling_category'] : 'No data'; ?>
-                </div>
-            </div>
-            
-            <div class="product-stat-card">
-                <div class="stat-title">Unique Products Sold</div>
-                <div class="stat-value"><?php echo isset($stats['unique_products_sold']) ? $stats['unique_products_sold'] : 0; ?></div>
-                <div class="stat-label">different products</div>
             </div>
             
             <div class="product-stat-card">
