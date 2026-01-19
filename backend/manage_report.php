@@ -66,7 +66,7 @@ function getDailySales($conn, $selected_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as hourly_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) = ?
             GROUP BY HOUR(order_date)
             ORDER BY order_hour";
@@ -103,7 +103,7 @@ function getDailySalesForChart($conn, $selected_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as hourly_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) = ?
             AND HOUR(order_date) BETWEEN 12 AND 23
             GROUP BY HOUR(order_date)
@@ -136,7 +136,7 @@ function getWeeklySales($conn, $start_date, $end_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as weekly_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) BETWEEN ? AND ?
             GROUP BY YEARWEEK(order_date, 1)
             ORDER BY week_number DESC";
@@ -166,7 +166,7 @@ function getWeeklySalesForChart($conn, $start_date, $end_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as day_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) BETWEEN ? AND ?
             GROUP BY DAYNAME(order_date), DAYOFWEEK(order_date)
             ORDER BY day_number";
@@ -196,7 +196,7 @@ function getMonthlySales($conn, $year, $month = null) {
                     COUNT(*) as order_count,
                     SUM(total_amount) as daily_total
                 FROM orders 
-                WHERE order_status = 'active'
+                WHERE order_status = 'completed'
                 AND YEAR(order_date) = ?
                 AND MONTH(order_date) = ?
                 GROUP BY DAY(order_date)
@@ -221,7 +221,7 @@ function getMonthlySales($conn, $year, $month = null) {
                     COUNT(*) as order_count,
                     SUM(total_amount) as monthly_total
                 FROM orders 
-                WHERE order_status = 'active'
+                WHERE order_status = 'completed'
                 AND YEAR(order_date) = ?
                 GROUP BY YEAR(order_date), MONTH(order_date)
                 ORDER BY order_year DESC, order_month DESC";
@@ -252,7 +252,7 @@ function getYearlySales($conn, $year = null) {
                     COUNT(*) as order_count,
                     SUM(total_amount) as monthly_total
                 FROM orders 
-                WHERE order_status = 'active'
+                WHERE order_status = 'completed'
                 AND YEAR(order_date) = ?
                 GROUP BY MONTH(order_date)
                 ORDER BY order_month";
@@ -275,7 +275,7 @@ function getYearlySales($conn, $year = null) {
                     COUNT(*) as order_count,
                     SUM(total_amount) as yearly_total
                 FROM orders 
-                WHERE order_status = 'active'
+                WHERE order_status = 'completed'
                 GROUP BY YEAR(order_date)
                 ORDER BY order_year DESC";
         
@@ -304,7 +304,7 @@ function getDailySalesStatistics($conn, $selected_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as sales_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) = ?";
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -327,7 +327,7 @@ function getDailySalesStatistics($conn, $selected_date) {
                 HOUR(order_date) as busiest_hour,
                 COUNT(*) as hour_orders
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) = ?
             GROUP BY HOUR(order_date)
             ORDER BY hour_orders DESC
@@ -363,7 +363,7 @@ function getSalesStatistics($conn, $start_date, $end_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as sales_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) BETWEEN ? AND ?";
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -473,7 +473,7 @@ function getProductSales($conn, $start_date, $end_date, $category_filter = 'all'
                 SUM(quantity) as total_quantity,
                 SUM(total_amount) as total_sales
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) BETWEEN ? AND ?
             GROUP BY product_id
             HAVING SUM(quantity) > 0
@@ -617,7 +617,7 @@ function getProductSalesStatistics($conn, $start_date, $end_date) {
                 COUNT(*) as order_count,
                 SUM(total_amount) as sales_total
             FROM orders 
-            WHERE order_status = 'active'
+            WHERE order_status = 'completed'
             AND DATE(order_date) BETWEEN ? AND ?";
     
     $stmt = mysqli_prepare($conn, $sql);
