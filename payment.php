@@ -392,75 +392,91 @@
         .alert-box {
             display: none;
             position: fixed;
-            top: 80px;
+            top: 90px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #14a14f, #14a14f);
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
             color: #ffffff;
-            padding: 20px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            padding: 22px 34px;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
             font-size: 16px;
             font-weight: 600;
             text-align: center;
             z-index: 9999;
-            min-width: 260px;
-            animation: slideDown 0.5s ease;
+            min-width: 300px;
+            animation: alertFadeIn 0.45s ease-out;
+        }
+
+        .alert-box p {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: 0.4px;
+            text-align: center;
         }
 
         .alert-box button {
-            margin-top: 14px;
-            padding: 8px 26px;
+            margin-top: 18px;
+            padding: 10px 34px;
             border: none;
             background: #ffffff;
-            color: #4f9f76;
+            color: #2e7d32;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: 999px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
 
         .alert-box button:hover {
-            background: #f2faf6;
-            transform: translateY(-1px);
+            background: #e8f5e9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
         }
 
         .alert-box1 {
             display: none;
             position: fixed;
-            top: 80px;
+            top: 90px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #c01a1a, #c01a1a);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            background: linear-gradient(135deg, #d93025, #b71c1c);
+            color: #ffffff;
+            padding: 22px 34px;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
             font-size: 16px;
             font-weight: 600;
             text-align: center;
             z-index: 9999;
-            min-width: 260px;
-            animation: slideDown 0.5s ease;
+            min-width: 300px;
+            animation: alertFadeIn 0.45s ease-out;
+        }
+
+        .alert-box1 p {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: 0.4px;
+            text-align: center;
         }
 
         .alert-box1 button {
-            margin-top: 14px;
-            padding: 8px 26px;
+            margin-top: 18px;
+            padding: 10px 34px;
             border: none;
             background: #ffffff;
-            color: #c94a4a;
+            color: #c62828;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: 999px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
 
         .alert-box1 button:hover {
-            background: #fff5f5;
-            transform: translateY(-1px);
+            background: #fff1f1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
         }
 
         @keyframes slideDown {
