@@ -363,7 +363,7 @@
 
     </style>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="AddToCart"/>
+    <link rel="stylesheet" href="AddToCart.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JC Restaurant | Fine Dining Experience</title>
@@ -379,14 +379,15 @@
                 </a>
                 <ul class="nav-links">
                     <li><a href="homepage.html" class="active">HOME</a></li>
-                    <li><a href="#">ABOUT</a></li>
+                    <li><a href="homepage.html#about">ABOUT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
-                    <li><a href="#">CONTACT</a></li>
+                    <li><a href="contactus.php">CONTACT</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
+                    <li><a href="myorder.php">My Order</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -402,6 +403,8 @@
         <div>
             <h2>My Cart</h2>
         </div>
+
+        
                             
         <?php
 
@@ -413,17 +416,35 @@
         while($row = mysqli_fetch_assoc($result)){
         
         $count++;
+        
+        $product_id = $row['product_id']; 
+
+        $query1 = "
+        SELECT * FROM main_food WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM snackfood WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM coffee WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM beverages WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM pizza WHERE product_id = '$product_id'
+        ";
+
+        $result1 = mysqli_query($conn, $query1);
+        $data1 = mysqli_fetch_assoc($result1);
 
         ?>
+
         <div>	
             <div class="cart-item">
 
                 <div class="cart-img">
-                    <img src="<?php echo "backend/" . $row['product_image']; ?>">
+                    <img src="<?php echo "backend/" . $data1['product_image']; ?>">
                 </div>
 
                 <div class="cart-name">
-                    <?php echo $row['product_name']; ?>
+                    <?php echo $data1['product_name']; ?>
                 </div>
 
                 <div class="cart-qty">
@@ -445,7 +466,8 @@
                 </div>
 
                 <div class="cart-price">
-                    RM <?php echo $row['total_amount']; ?>
+                    <?php $ppprice = $data1['product_price'] * $row['quantity']; ?>
+                    RM <?php echo number_format($ppprice, 2); ?>
                 </div>
 
                 <div class="cart-remove">
@@ -467,12 +489,30 @@
         $result = mysqli_query($conn, "select * from orders where customer_id = '$customerid' and order_status = 'incart'");
         while($row = mysqli_fetch_assoc($result)){
 
+        $product_id = $row['product_id']; 
+
+        $query1 = "
+        SELECT * FROM main_food WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM snackfood WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM coffee WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM beverages WHERE product_id = '$product_id'
+        UNION
+        SELECT * FROM pizza WHERE product_id = '$product_id'
+        ";
+
+        $result1 = mysqli_query($conn, $query1);
+        $data1 = mysqli_fetch_assoc($result1);
+
+        $ppprice = $data1['product_price'] * $row['quantity'];
+
         ?>
 
         <div>	
 
-            <?php $row['total_amount']; ?>
-            <?php $ttotal += $row['total_amount']; ?>
+            <?php $ttotal += $ppprice; ?>
 
             <?php
             }
