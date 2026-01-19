@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JC Restaurant | Contact Us</title>
+    <title>Contact Us | JC Restaurant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -125,10 +125,14 @@
             font-family: "Times New Roman", Times, serif;
         }
         
-        .cart-btn:hover {
+        .nav-links .cart-btn:hover {
             background-color: orange;
             color: white;
             transform: translateY(-2px);
+        }
+
+        .nav-links .cart-btn::after {
+            display: none;
         }
         
         .cart-btn i {
@@ -535,14 +539,14 @@
                 <ul class="nav-links">
                     <li><a href="homepage.html">HOME</a></li>
                     <li><a href="aboutus.php">ABOUT</a></li>
-                    <li><a href="menuPage.php">MENU</a></li>
                     <li><a href="contactus.php" class="active">CONTACT</a></li>
+                    <li><a href="menuPage.php">MENU</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
                             EDIT PROFILE
                         </a>
                     </li>
-                    <li><a href="myorder.php">My Order</a></li>
+                    <li><a href="myorder.php">ORDER</a></li>
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
@@ -656,7 +660,7 @@
                         <li><a href="contactus.php">Contact</a></li>
                         <li><a href="menuPage.php">Menu</a></li>
                         <li><a href="/jc_restaurant/customer_profile/edit-profile.php">Edit Profile</a></li>
-                        <li><a href="myorder.php">My Order</a></li>
+                        <li><a href="myorder.php">Order</a></li>
                         <li><a href="AddToCart.php">My Cart</a></li>
                     </ul>
                 </div>
