@@ -6,12 +6,12 @@ session_start();
 include("../backend/db_connect.php");
 
 /* ================= AUTH CHECK ================= */
-if (!isset($_SESSION['customer_id'])) {
+if (!isset($_SESSION['id'])) {
     header("Location: /jc_restaurant/customerLogin.php");
     exit;
 }
 
-$user_id = $_SESSION['customer_id'];
+$user_id = $_SESSION['id'];
 $error = "";
 $success = "";
 
@@ -373,3 +373,4 @@ modal.style.display = 'flex';
 
 </body>
 </html>
+
