@@ -305,6 +305,12 @@ button:hover {
     <a href="change-password.php" style="flex:1; text-align:center; text-decoration:none;">
         <button type="button" style="background:#ff9800; color:#fff; font-weight:bold;">Change Password</button>
     </a>
+    </div>
+    <div class="flex-buttons">
+    <a href="../history.php" style="flex:1; text-align:center; text-decoration:none;">
+        <button type="button" style="background:#ff9800; color:#fff; font-weight:bold;">Order History</button>
+    </a>
+    </div>
 </div>
 
 </form>
@@ -373,4 +379,5 @@ modal.style.display = 'flex';
 
 </body>
 </html>
+
 
