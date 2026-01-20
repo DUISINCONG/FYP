@@ -325,6 +325,28 @@ if (isset($_POST['loginbutton'])) {
             text-align: center;
             font-size: 18px;
         }
+
+        .logout-btn{
+            display:inline-flex;
+            align-items:center;
+            background-color:transparent;
+            color:var(--primary);
+            padding:10px 18px;
+            border-radius:30px;
+            text-decoration:none;
+            font-weight:600;
+            border:2px solid var(--border);
+            transition:all 0.3s ease;
+            letter-spacing:1px;
+            }
+
+        .logout-btn i{ margin-right:8px; }
+
+        .logout-btn:hover{
+            border-color:var(--primary);
+            transform:translateY(-3px);
+            box-shadow:0 10px 20px rgba(0,0,0,0.08);
+        }
     </style>
 
   <meta charset="UTF-8" />
@@ -344,9 +366,9 @@ if (isset($_POST['loginbutton'])) {
                     JC Restaurant
                 </a>
                 <ul class="nav-links">
-                    <li><a href="homepage.html" class="active">HOME</a></li>
+                    <li><a href="homepage.html">HOME</a></li>
                     <li><a href="aboutus.php">ABOUT</a></li>
-                    <li><a href="contactus.php">CONTACT</a></li>
+                    <li><a href="contactus.pbp">CONTACT</a></li>
                     <li><a href="menuPage.php">MENU</a></li>
                     <li>
                         <a href="/jc_restaurant/customer_profile/edit-profile.php">
@@ -357,6 +379,11 @@ if (isset($_POST['loginbutton'])) {
                     <li>
                         <a href="AddToCart.php" class="cart-btn">
                             <i class="fa-solid fa-cart-shopping"></i>My Cart
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/jc_restaurant/logout.php" class="logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i>Logout
                         </a>
                     </li>
                 </ul>
@@ -465,5 +492,3 @@ if (isset($_POST['loginbutton'])) {
 
 </body>
 </html> 
-
-
