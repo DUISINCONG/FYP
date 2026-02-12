@@ -1,0 +1,108 @@
+<script>
+
+function error1() {
+  alert("Invalid Password. Please Try Again.");
+}
+
+function error2() {
+  alert("Invalid Email. Please Try Again.");
+}
+
+</script>
+
+<?php
+include("db_connect.php");
+
+session_start();
+
+if(isset($_POST['loginbutton'])) {
+    $cemail = mysqli_real_escape_string($conn, $_POST['cemail']);
+    $password = $_POST['cpassword'];
+
+    $query = "SELECT * FROM customers WHERE email = '$cemail'";
+    $result = mysqli_query($conn, $query);
+
+    $query1 = "SELECT * FROM customers WHERE password = '$password'";   
+    $result1 = mysqli_query($conn, $query1);
+
+    if(mysqli_num_rows($result) == 1) {
+        $admin = mysqli_fetch_assoc($result);
+        
+        if(mysqli_num_rows($result1) == 1) {
+            
+            header("Location: index.html");
+            exit();
+        } else {
+            echo "<script>error1();</script>";
+        }
+    } else {
+        echo "<script>error2();</script>";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="clogincss.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+  <title>Login</title>
+  <link rel="stylesheet" href="clogincss.css"/>
+</head>
+<body>
+
+    <div class="A">
+
+        <div class="B">
+
+            <img src="JC_Restaurant_Logo.png">
+
+        </div>
+
+        <div class="B1">
+
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+
+                <h2>Welcome JC Restaurant</h2>
+
+                <div class="C">
+                    <div class="D">
+                        <div class="D1">
+                        <label for="cemail">Email :</label><br>
+                        </div>
+                        <input type="text" id="cemail" name="cemail" required>
+                    </div>
+
+                    <div class="D">
+                        <div class="D2">
+                        <label for="cpassword">Password:</label><br>
+                        </div>
+                        <input type="password" id="cpassword" name="cpassword" required>
+                    </div>
+                    <br>
+
+                    <div class="F">
+
+                    <input type="submit" name="loginbutton" value="Login">
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <p>--------------- or ---------------</p>
+
+            <div class="E">
+            <button type="button">Register</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html> 
+
